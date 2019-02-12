@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SmartPrediction</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="input_file">Input File</string>
+    <string name="clustering_time">Clustering time: #s</string>
+    <string name="cluster">Cluster</string>
+</resources>

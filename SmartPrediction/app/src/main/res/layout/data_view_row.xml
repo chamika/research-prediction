@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/text_event_type"
+        style="@style/TextAppearance.AppCompat.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="SMS " />
+
+    <TextView
+        android:id="@+id/text_action_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/text_event_type"
+        android:layout_alignStart="@+id/text_event_type"
+        android:layout_alignLeft="@+id/text_event_type"
+        android:layout_marginTop="18dp"
+        android:text="A" />
+
+    <TextView
+        android:id="@+id/text_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/text_event_type"
+        android:layout_alignBottom="@+id/text_event_type"
+        android:layout_marginStart="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_toEndOf="@+id/text_event_type"
+        android:layout_toRightOf="@+id/text_event_type"
+        android:text="Time" />
+
+    <TextView
+        android:id="@+id/text_data"
+        style="@style/TextAppearance.AppCompat.Medium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/text_time"
+        android:layout_alignLeft="@+id/text_time"
+        android:layout_alignTop="@+id/text_action_type"
+        android:text="Data" />
+
+
+</RelativeLayout>
