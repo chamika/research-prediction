@@ -2,19 +2,25 @@
 package com.chamika.research.smartprediction.service;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.prediction.AppPrediction;
 import com.chamika.research.smartprediction.prediction.CallPrediction;
 import com.chamika.research.smartprediction.prediction.Event;
@@ -38,6 +44,7 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
     public static final String INTENT_EXTRA_PREDICTIONS = "predictions";
     public static final String INTENT_EXTRA_SCREEN_ON = "screenOn";
     public static final String INTENT_EXTRA_SCREEN_EVENT = "event";
+    public static final String INTENT_EXTRA_STOP = "stop";
     private static final String TAG = PredictionHoverMenuService.class.getSimpleName();
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
     private PredictionEngine predictionEngine;
@@ -56,16 +63,50 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
 
     public void onCreate() {
         Log.d("HoverMenuService", "onCreate()");
+        startNotification();
+
+    }
+
+    public void startNotification() {
         Notification foregroundNotification = this.getForegroundNotification();
         if (null != foregroundNotification) {
             int notificationId = this.getForegroundNotificationId();
             this.startForeground(notificationId, foregroundNotification);
-        }
+        } else {
+            Notification notification;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String NOTIFICATION_CHANNEL_ID = "com.chamika.research.smartprediction.service.running";
+                String channelName = "Service Status";
+                NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+                chan.setLightColor(Color.BLUE);
+                chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                assert manager != null;
+                manager.createNotificationChannel(chan);
 
+                Notification.Builder builder = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
+                        .setContentTitle(getString(R.string.app_name))
+                        .setContentText("Smart Predictions Running...")
+                        .setAutoCancel(true);
+                notification = builder.build();
+            } else {
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setContentTitle(getString(R.string.app_name))
+                        .setContentText("Smart Predictions Running...")
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setAutoCancel(true);
+                notification = builder.build();
+            }
+            this.startForeground(1, notification);
+        }
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("HoverMenuService", "onStartCommand() ");
+        if (intent.hasExtra(INTENT_EXTRA_STOP)) {
+            stopForeground(true);
+            stopSelf();
+        }
         if (!OverlayPermission.hasRuntimePermissionToDrawOverlay(this.getApplicationContext())) {
             Log.e("HoverMenuService", "Cannot display a Hover menu in a Window without the draw overlay permission.");
             this.stopSelf();

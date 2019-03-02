@@ -3,6 +3,7 @@ package com.chamika.research.smartprediction.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 public class ScreenReceiver extends BroadcastReceiver {
@@ -27,7 +28,11 @@ public class ScreenReceiver extends BroadcastReceiver {
         if (needEvent) {
             Intent i = new Intent(context, PredictionHoverMenuService.class);
             i.putExtra(PredictionHoverMenuService.INTENT_EXTRA_SCREEN_ON, screenOn);
-            context.startService(i);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(i);
+            } else {
+                context.startService(i);
+            }
         }
     }
 }

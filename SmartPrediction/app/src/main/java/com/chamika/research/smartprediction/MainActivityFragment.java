@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -49,6 +50,7 @@ public class MainActivityFragment extends Fragment {
     private static final int PERMISSIONS_REQUEST_LOCATION = 1003;
     private PendingIntent pendingIntent;
 
+    private boolean serviceRunning = false;
 
     public MainActivityFragment() {
     }
@@ -221,18 +223,36 @@ public class MainActivityFragment extends Fragment {
     private void startPrediction(View v) {
         //check for permission
         Context context = this.getContext();
-        if (OverlayPermission.hasRuntimePermissionToDrawOverlay(context)) {
-            this.getActivity().startService(new Intent(context.getApplicationContext(), PredictionHoverMenuService.class));
-        } else {
-            Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION", Uri.parse("package:" + context.getPackageName()));
-            startActivityForResult(intent, REQUEST_CODE_HOVER_PERMISSION);
+        if (context != null) {
+            if (OverlayPermission.hasRuntimePermissionToDrawOverlay(context)) {
+                Intent intent = new Intent(context.getApplicationContext(), PredictionHoverMenuService.class);
+                if (serviceRunning) {
+                    intent.putExtra(PredictionHoverMenuService.INTENT_EXTRA_STOP, true);
+                }
+                serviceRunning = !serviceRunning;
+                startHoverService(intent);
+            } else {
+                Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION", Uri.parse("package:" + context.getPackageName()));
+                startActivityForResult(intent, REQUEST_CODE_HOVER_PERMISSION);
+            }
         }
     }
 
     private void sendEvent(Event event) {
         Intent i = new Intent(this.getContext(), PredictionHoverMenuService.class);
         i.putExtra(PredictionHoverMenuService.INTENT_EXTRA_SCREEN_EVENT, event);
-        this.getContext().startService(i);
+        startHoverService(i);
+    }
+
+    private void startHoverService(Intent intent) {
+        Context context = this.getContext();
+        if (context != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            } else {
+                context.startService(intent);
+            }
+        }
     }
 
 

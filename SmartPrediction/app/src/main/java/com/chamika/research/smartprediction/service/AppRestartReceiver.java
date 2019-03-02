@@ -3,6 +3,7 @@ package com.chamika.research.smartprediction.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 public class AppRestartReceiver extends BroadcastReceiver {
@@ -11,6 +12,11 @@ public class AppRestartReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive()");
-        context.getApplicationContext().startService(new Intent(context.getApplicationContext(), PredictionHoverMenuService.class));
+        Intent serviceIntent = new Intent(context.getApplicationContext(), PredictionHoverMenuService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.getApplicationContext().startForegroundService(serviceIntent);
+        } else {
+            context.getApplicationContext().startService(serviceIntent);
+        }
     }
 }
