@@ -16,6 +16,10 @@ import java.util.Locale;
 
 public class FileExport {
 
+    private static final boolean ENABLE_APP = true;
+    private static final boolean ENABLE_SMS = true;
+    private static final boolean ENABLE_CALL = true;
+
     private static final String TAG = FileExport.class.getSimpleName();
 
     public static void exportDBtoFile(Context context, String fileName) {
@@ -78,8 +82,7 @@ public class FileExport {
                     continue;
                 }
 
-                //TODO remove after testing
-                if (event == 3.0 || event == 4.0) {
+                if ((!ENABLE_APP && event == 5.0) || (!ENABLE_CALL && event == 3.0) || (!ENABLE_SMS && event == 4.0)) {
                     continue;
                 }
 

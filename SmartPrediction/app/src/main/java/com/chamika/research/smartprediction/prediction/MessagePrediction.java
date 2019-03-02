@@ -1,12 +1,7 @@
 package com.chamika.research.smartprediction.prediction;
 
-public class MessagePrediction extends Prediction {
-    public MessagePrediction(String id, String number) {
-        super(id, Type.SMS);
-        this.data = number;
-    }
-
-    public String getNumber() {
-        return data;
+public class MessagePrediction extends ContactPrediction {
+    public MessagePrediction(String id, String contactHash) {
+        super(Type.SMS, id, contactHash);
     }
 }

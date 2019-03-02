@@ -101,8 +101,17 @@
         android:id="@+id/btn_prediction"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
         android:text="Prediction"
-        app:layout_constraintLeft_toRightOf="@id/btn_cluster"
-        app:layout_constraintTop_toTopOf="@id/btn_cluster" />
+        app:layout_constraintStart_toStartOf="@+id/btn_view"
+        app:layout_constraintTop_toBottomOf="@+id/btn_view" />
+
+    <Button
+        android:id="@+id/btn_test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="Test"
+        app:layout_constraintStart_toEndOf="@+id/btn_prediction"
+        app:layout_constraintTop_toTopOf="@+id/btn_prediction" />
 </android.support.constraint.ConstraintLayout>

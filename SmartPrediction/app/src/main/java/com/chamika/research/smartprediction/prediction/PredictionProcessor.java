@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +24,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class PredictionProcessor {
-    //    public static final int CLUSTER_COUNT = 144;
-    public static final int CLUSTER_COUNT = 48 * 7; // approximately 30 mins predictions
+    public static final int CLUSTER_COUNT = 48;
+    //    public static final int CLUSTER_COUNT = 48 * 7; // approximately 30 mins predictions
     //    public static final int CLUSTER_COUNT = 4;
     public static final int CLUSTER_ITERATIONS = 5;
     private static final String TAG = PredictionProcessor.class.getSimpleName();
@@ -51,22 +50,18 @@ public class PredictionProcessor {
             return predictions;
         }
         //TODO implement
-        if (event instanceof Event) {
-//            AppPrediction appPrediction = new AppPrediction();
-//            appPrediction.setPackageName("com.facebook.katana");
-//            appPrediction.setId("2");
-//            predictions.add(appPrediction);
-
-            queryClusterPredictions(predictions);
-        }
+        List<Event> events = new ArrayList<>();
+        events.add(event);
+        queryClusterPredictions(predictions, events);
 
         return predictions;
     }
 
-    private void queryClusterPredictions(List<Prediction> predictions) {
+    private void queryClusterPredictions(List<Prediction> predictions, List<Event> events) {
         if (!clusteredData.isEmpty()) {
+            //TODO fix for multiple events
             Calendar cal = Calendar.getInstance();
-            cal.setTime(new Date());
+            cal.setTime(events.get(0).getDate());
             double timeOfDay = FileExport.getTimeOfDay(cal);
             Map.Entry<Double, Dataset> entry = clusteredData.ceilingEntry(timeOfDay);
             if (entry != null) {
@@ -95,10 +90,11 @@ public class PredictionProcessor {
                     if (EventType.ACT.text().equals(eventType)) {
                         prediction = new ActivityPrediction(String.valueOf(count++), split[1]);
                     } else if (EventType.CALL.text().equals(eventType)) {
-
+                        prediction = new CallPrediction(String.valueOf(count++), split[1]);
                     } else if (EventType.SMS.text().equals(eventType)) {
-
-                    } else if (EventType.APP.text().equals(eventType)) {
+                        prediction = new MessagePrediction(String.valueOf(count++), split[1]);
+                    } else if (EventType.
+                            APP.text().equals(eventType)) {
                         prediction = new AppPrediction(String.valueOf(count++), split[1]);
                     }
 

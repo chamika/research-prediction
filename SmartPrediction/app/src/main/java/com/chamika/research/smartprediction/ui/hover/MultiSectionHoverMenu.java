@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,16 +14,24 @@ import android.widget.ImageView;
 
 import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.prediction.AppPrediction;
+import com.chamika.research.smartprediction.prediction.CallPrediction;
+import com.chamika.research.smartprediction.prediction.ContactPrediction;
+import com.chamika.research.smartprediction.prediction.MessagePrediction;
 import com.chamika.research.smartprediction.prediction.Prediction;
 import com.chamika.research.smartprediction.ui.hover.adapters.OnItemSelectListener;
+import com.chamika.research.smartprediction.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import io.mattcarroll.hover.Content;
 import io.mattcarroll.hover.HoverMenu;
+import me.everything.providers.android.contacts.Contact;
+import me.everything.providers.android.contacts.ContactsProvider;
+import me.everything.providers.core.Data;
 
 public class MultiSectionHoverMenu extends HoverMenu {
 
@@ -50,7 +59,7 @@ public class MultiSectionHoverMenu extends HoverMenu {
 
         for (Map.Entry<Prediction.Type, List<Prediction>> entry : map.entrySet()) {
             switch (entry.getKey()) {
-                case APP:
+                case APP: {
                     List<AppPrediction> predictionList = (List<AppPrediction>) (List<?>) entry.getValue();
                     prepareAppPredictions(predictionList);
                     AppPrediction appPrediction = (AppPrediction) entry.getValue().get(0);
@@ -64,6 +73,74 @@ public class MultiSectionHoverMenu extends HoverMenu {
                             )
                     );
                     break;
+                }
+
+                case SMS: {
+                    List<MessagePrediction> predictionList = (List<MessagePrediction>) (List<?>) entry.getValue();
+                    prepareContactPredictions(predictionList);
+                    if (!predictionList.isEmpty()) {
+                        mSections.add(
+                                new Section(
+                                        new SectionId(Prediction.Type.SMS.name()),
+                                        createMessageIcon(),
+                                        createContactScreen(mContext, predictionList)
+
+                                )
+                        );
+                    }
+                    break;
+                }
+
+                case CALL: {
+                    List<CallPrediction> predictionList = (List<CallPrediction>) (List<?>) entry.getValue();
+                    prepareContactPredictions(predictionList);
+                    if (!predictionList.isEmpty()) {
+                        mSections.add(
+                                new Section(
+                                        new SectionId(Prediction.Type.CALL.name()),
+                                        createCallIcon(),
+                                        createContactScreen(mContext, predictionList)
+
+                                )
+                        );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private void prepareContactPredictions(List<? extends ContactPrediction> predictionList) {
+        Map<String, com.chamika.research.smartprediction.ui.hover.Contact> numberHashes = new HashMap<>();
+
+        ContactsProvider provider = new ContactsProvider(mContext);
+        Data<Contact> contacts = provider.getContacts();
+        if (contacts != null) {
+            List<Contact> list = contacts.getList();
+            if (list != null && !list.isEmpty()) {
+                for (Contact contact : list) {
+                    numberHashes.put(StringUtil.maskNumber(contact.phone),
+                            new com.chamika.research.smartprediction.ui.hover.Contact(contact.displayName, contact.phone, contact.uriPhoto));
+                }
+            }
+        }
+
+        if (predictionList != null) {
+            Iterator<? extends ContactPrediction> iterator = predictionList.iterator();
+            while (iterator.hasNext()) {
+                ContactPrediction contactPrediction = iterator.next();
+                com.chamika.research.smartprediction.ui.hover.Contact contact = numberHashes.get(contactPrediction.getHashedNumber());
+                if (contact != null) {
+                    contactPrediction.setName(contact.getName());
+                    contactPrediction.setNumber(contact.getNumber());
+                    contactPrediction.setUri(contact.getUri());
+                } else {
+                    contactPrediction.setName(contactPrediction.getHashedNumber());
+                    contactPrediction.setNumber(contactPrediction.getHashedNumber());
+                    contactPrediction.setUri(null);
+                    //TODO remove only
+//                    iterator.remove();
+                }
             }
         }
     }
@@ -101,22 +178,43 @@ public class MultiSectionHoverMenu extends HoverMenu {
 
     private View createTabView() {
         ImageView imageView = new ImageView(mContext);
-        imageView.setImageResource(R.drawable.tab_background);
+//        imageView.setImageResource(R.drawable.tab_background);
         imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         return imageView;
     }
 
     private View createAppIconView(AppPrediction prediction) {
         ImageView imageView = new ImageView(mContext);
-        imageView.setImageResource(R.drawable.tab_background);
         imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         imageView.setImageDrawable(prediction.getAppIcon());
         return imageView;
     }
 
-    private Content createAppScreen(Context context, List<AppPrediction> appPredictions) {
-        return new AppListContent(context, appPredictions, onItemSelectListener);
+    private View createMessageIcon() {
+        ImageView imageView = new ImageView(mContext);
+        imageView.setImageResource(R.drawable.ic_sms_prediction);
+        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        imageView.setBackgroundColor(Color.BLUE);
+        return imageView;
     }
+
+    private View createCallIcon() {
+        ImageView imageView = new ImageView(mContext);
+        imageView.setImageResource(R.drawable.ic_call_prediction);
+        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        imageView.setBackgroundColor(Color.BLUE);
+        return imageView;
+    }
+
+
+    private Content createAppScreen(Context context, List<AppPrediction> predictions) {
+        return new AppListContent(context, predictions, onItemSelectListener);
+    }
+
+    private Content createContactScreen(Context context, List<? extends ContactPrediction> predictions) {
+        return new ContactListContent(context, predictions, onItemSelectListener);
+    }
+
 
     @Override
     public String getId() {

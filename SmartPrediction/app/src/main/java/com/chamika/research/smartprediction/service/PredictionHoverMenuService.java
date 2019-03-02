@@ -16,7 +16,9 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.chamika.research.smartprediction.prediction.AppPrediction;
+import com.chamika.research.smartprediction.prediction.CallPrediction;
 import com.chamika.research.smartprediction.prediction.Event;
+import com.chamika.research.smartprediction.prediction.MessagePrediction;
 import com.chamika.research.smartprediction.prediction.Prediction;
 import com.chamika.research.smartprediction.prediction.PredictionEngine;
 import com.chamika.research.smartprediction.ui.hover.MultiSectionHoverMenu;
@@ -35,6 +37,7 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
 
     public static final String INTENT_EXTRA_PREDICTIONS = "predictions";
     public static final String INTENT_EXTRA_SCREEN_ON = "screenOn";
+    public static final String INTENT_EXTRA_SCREEN_EVENT = "event";
     private static final String TAG = PredictionHoverMenuService.class.getSimpleName();
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
     private PredictionEngine predictionEngine;
@@ -87,6 +90,11 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
                     }
                 } else if (intent.hasExtra(INTENT_EXTRA_PREDICTIONS)) {
                     createMenu(intent);
+                } else if (intent.hasExtra(INTENT_EXTRA_SCREEN_EVENT)) {
+                    Event event = (Event) intent.getSerializableExtra(INTENT_EXTRA_SCREEN_EVENT);
+                    if (event != null) {
+                        showPredictions(predictionEngine.addEventSynchronous(event));
+                    }
                 }
             }
             registerScreenState();
@@ -178,10 +186,12 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
 
     private void showPredictions(List<Prediction> predictions) {
         if (predictions != null && !predictions.isEmpty()) {
-            HoverView hoverView = getHoverView();
             HoverMenu menu = new MultiSectionHoverMenu(this, predictions, this);
-            hoverView.setMenu(menu);
-            hoverView.collapse();
+            if (menu.getSectionCount() > 0) {
+                HoverView hoverView = getHoverView();
+                hoverView.setMenu(menu);
+                hoverView.collapse();
+            }
         }
     }
 
@@ -197,7 +207,7 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
     public void onItemSelect(View v, Prediction item) {
         Context context = this;
         getHoverView().collapse();
-        if (item instanceof AppPrediction) {
+        if (Prediction.Type.APP == item.getType()) {
             AppPrediction appPrediction = (AppPrediction) item;
             Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(appPrediction.getPackageName());
             if (launchIntent != null) {
@@ -205,6 +215,14 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
             } else {
                 Toast.makeText(context, "No launcher found for " + appPrediction.getAppName(), Toast.LENGTH_SHORT).show();
             }
+        } else if (Prediction.Type.SMS == item.getType()) {
+            MessagePrediction messagePrediction = (MessagePrediction) item;
+            //TODO prompt to send SMS to the given number
+            Log.d(TAG, "Prompt to send SMS to " + messagePrediction.getNumber());
+        } else if (Prediction.Type.CALL == item.getType()) {
+            CallPrediction callPrediction = (CallPrediction) item;
+            //TODO prompt to call to the given number
+            Log.d(TAG, "Prompt to call to " + callPrediction.getNumber());
         }
     }
 }

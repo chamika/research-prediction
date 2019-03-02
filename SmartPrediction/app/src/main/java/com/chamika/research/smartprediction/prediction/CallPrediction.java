@@ -1,12 +1,7 @@
 package com.chamika.research.smartprediction.prediction;
 
-public class CallPrediction extends Prediction {
-    public CallPrediction(String id, String number) {
-        super(id, Type.CALL);
-        this.data = number;
-    }
-
-    public String getNumber() {
-        return data;
+public class CallPrediction extends ContactPrediction {
+    public CallPrediction(String id, String contactHash) {
+        super(Type.CALL, id, contactHash);
     }
 }

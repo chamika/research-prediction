@@ -21,6 +21,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.service.BackgroundService;
 import com.chamika.research.smartprediction.service.DataCollectorService;
 import com.chamika.research.smartprediction.service.DataUploaderService;
@@ -30,6 +31,8 @@ import com.chamika.research.smartprediction.ui.results.ResultsActivity;
 import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.Constant;
 import com.chamika.research.smartprediction.util.SettingsUtil;
+
+import java.util.Date;
 
 import io.mattcarroll.hover.overlay.OverlayPermission;
 
@@ -97,6 +100,13 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 startPrediction(v);
+            }
+        });
+
+        rootView.findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendEvent(new Event(new Date()));
             }
         });
 
@@ -217,6 +227,12 @@ public class MainActivityFragment extends Fragment {
             Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION", Uri.parse("package:" + context.getPackageName()));
             startActivityForResult(intent, REQUEST_CODE_HOVER_PERMISSION);
         }
+    }
+
+    private void sendEvent(Event event) {
+        Intent i = new Intent(this.getContext(), PredictionHoverMenuService.class);
+        i.putExtra(PredictionHoverMenuService.INTENT_EXTRA_SCREEN_EVENT, event);
+        this.getContext().startService(i);
     }
 
 
