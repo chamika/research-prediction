@@ -86,7 +86,7 @@ public class ResultsActivity extends AppCompatActivity {
     }
 
     public void clickLoad(View v) {
-        new ClusteringTask().execute(edtFilepath.getText().toString());
+        new ClusteringTask().execute(edtFilepath.getText().toString(), edtClusterAmount.getText().toString());
     }
 
     private void loadTime(int time) {
@@ -127,7 +127,7 @@ public class ResultsActivity extends AppCompatActivity {
         @Override
         protected Dataset[] doInBackground(String... params) {
             try {
-                return new Clustering().doCluster(params[0], Integer.parseInt(edtClusterAmount.getText().toString()), 100);
+                return new Clustering().doCluster(params[0], Integer.parseInt(params[1]), 5);
             } catch (IOException e) {
                 e.printStackTrace();
             }

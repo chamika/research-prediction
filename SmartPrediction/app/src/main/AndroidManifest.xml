@@ -68,6 +68,11 @@
                 <action android:name="android.intent.action.SCREEN_ON" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".service.AppRestartReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:label="RestartServiceWhenStopped"></receiver>
 
 
         <service android:name=".service.BackgroundService" />

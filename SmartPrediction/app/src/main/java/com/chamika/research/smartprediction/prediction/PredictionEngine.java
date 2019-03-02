@@ -47,8 +47,21 @@ public class PredictionEngine {
         notifyPredictions(predictions);
     }
 
+    public List<Prediction> addEventSynchronous(Event event) {
+        if (event != null) {
+            Log.d(TAG, event.toString() + " received.");
+        } else {
+            Log.d(TAG, "null event received.");
+        }
+
+        List<Prediction> predictions = processor.processEvent(event);
+        Log.d(TAG, "Prediction count=" + predictions.size());
+        return predictions;
+    }
+
     private void notifyPredictions(List<Prediction> predictions) {
-        if (predictions != null && !predictions.isEmpty()) {
+        Log.d(TAG, "Prediction count=" + predictions.size());
+        if (!predictions.isEmpty()) {
             for (PredictionListener predictionListener : predictionListeners) {
                 predictionListener.onPredictions(predictions);
             }

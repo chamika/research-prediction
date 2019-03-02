@@ -54,8 +54,8 @@ public class FileExport {
                 String data3 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA3));
                 String data4 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA4));
 
-                dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-                timeOfDay = cal.get(Calendar.HOUR_OF_DAY) * 10000 + cal.get(Calendar.MINUTE) * 100 + cal.get(Calendar.SECOND);
+                dayOfWeek = getDayOfWeek(cal);
+                timeOfDay = getTimeOfDay(cal);
                 switch (eventType) {
                     case "ACT":
                         event = 1.0;
@@ -87,7 +87,7 @@ public class FileExport {
                 String text = eventType + "|" + data1 + "|" + sdf.format(cal.getTime());
 
 //                        String format = String.format("%.0f,%.0f,%.0f,%.0f,%s", dayOfWeek, timeOfDay, event, d1, text);
-                String format = String.format(Locale.US, "%.0f,%.0f,%.0f,%s", dayOfWeek, timeOfDay, event, text);
+                String format = String.format(Locale.US, "%.4f,%.4f,%.0f,%s", dayOfWeek, timeOfDay, event, text);
 //                        String format = String.format("%.0f,%.0f,%.0f,%.0f,%s", d1, event, timeOfDay, dayOfWeek, text);
 //                        String format = String.format(Locale.US,"%.0f,%.0f,%.0f,%s", event, timeOfDay, dayOfWeek, text);
                 Log.d(TAG, format);
@@ -116,5 +116,13 @@ public class FileExport {
                 }
             }
         }
+    }
+
+    public static double getTimeOfDay(Calendar cal) {
+        return (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)) / 1440.0;
+    }
+
+    public static double getDayOfWeek(Calendar cal) {
+        return cal.get(Calendar.DAY_OF_WEEK) / 7.0;
     }
 }

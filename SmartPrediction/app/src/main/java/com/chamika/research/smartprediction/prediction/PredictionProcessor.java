@@ -14,8 +14,8 @@ import net.sf.javaml.core.Dataset;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -26,15 +26,15 @@ import java.util.TreeMap;
 
 public class PredictionProcessor {
     //    public static final int CLUSTER_COUNT = 144;
-    public static final int CLUSTER_COUNT = 48; // approximately 30 mins predictions
+    public static final int CLUSTER_COUNT = 48 * 7; // approximately 30 mins predictions
     //    public static final int CLUSTER_COUNT = 4;
-    public static final int CLUSTER_ITERATIONS = 2;
+    public static final int CLUSTER_ITERATIONS = 5;
     private static final String TAG = PredictionProcessor.class.getSimpleName();
     private static final int MAX_PREDICTIONS = 5;
     private Context context;
     private boolean initialized = false;
 
-    private NavigableMap<Integer, Dataset> clusteredData = new TreeMap<>();
+    private NavigableMap<Double, Dataset> clusteredData = new TreeMap<>();
 
     public PredictionProcessor(Context context) {
         this.context = context;
@@ -65,8 +65,10 @@ public class PredictionProcessor {
 
     private void queryClusterPredictions(List<Prediction> predictions) {
         if (!clusteredData.isEmpty()) {
-            String timeWithSecs = new SimpleDateFormat("HHmmss").format(new Date());
-            Map.Entry<Integer, Dataset> entry = clusteredData.ceilingEntry(Integer.parseInt(timeWithSecs));
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(new Date());
+            double timeOfDay = FileExport.getTimeOfDay(cal);
+            Map.Entry<Double, Dataset> entry = clusteredData.ceilingEntry(timeOfDay);
             if (entry != null) {
                 Set<String> set = new HashSet<>();
                 Dataset dataset = entry.getValue();
@@ -148,7 +150,7 @@ public class PredictionProcessor {
             if (datasets != null && datasets.length > 0) {
                 clusteredData.clear();
                 for (Dataset dataset : datasets) {
-                    clusteredData.put((int) Math.round(dataset.get(0).value(1)), dataset);
+                    clusteredData.put(dataset.get(0).value(1), dataset);
                 }
             }
             PredictionProcessor.this.initialized = true;

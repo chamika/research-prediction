@@ -51,6 +51,7 @@ public class Clustering {
         Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), 3, ",");
         /* Create a new instance of the KMeans algorithm, with no options
          * specified. By default this will generate 4 clusters. */
+        Log.d(TAG, String.format("clustering started. clusterCount=%d iterations=%d", clusterCount, iterations));
         Clusterer km = new KMeans(clusterCount, iterations);
         /* Cluster the data, it will be returned as an array of data sets, with
          * each dataset representing a cluster. */

@@ -19,11 +19,9 @@ import com.chamika.research.smartprediction.prediction.AppPrediction;
 import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.Prediction;
 import com.chamika.research.smartprediction.prediction.PredictionEngine;
-import com.chamika.research.smartprediction.prediction.PredictionListener;
 import com.chamika.research.smartprediction.ui.hover.MultiSectionHoverMenu;
 import com.chamika.research.smartprediction.ui.hover.adapters.OnItemSelectListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.mattcarroll.hover.HoverMenu;
@@ -33,7 +31,7 @@ import io.mattcarroll.hover.SideDock;
 import io.mattcarroll.hover.overlay.OverlayPermission;
 import io.mattcarroll.hover.window.WindowViewController;
 
-public class PredictionHoverMenuService extends Service implements PredictionListener, OnItemSelectListener<Prediction> {
+public class PredictionHoverMenuService extends Service implements OnItemSelectListener<Prediction> {
 
     public static final String INTENT_EXTRA_PREDICTIONS = "predictions";
     public static final String INTENT_EXTRA_SCREEN_ON = "screenOn";
@@ -64,6 +62,7 @@ public class PredictionHoverMenuService extends Service implements PredictionLis
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("HoverMenuService", "onStartCommand() ");
         if (!OverlayPermission.hasRuntimePermissionToDrawOverlay(this.getApplicationContext())) {
             Log.e("HoverMenuService", "Cannot display a Hover menu in a Window without the draw overlay permission.");
             this.stopSelf();
@@ -71,7 +70,6 @@ public class PredictionHoverMenuService extends Service implements PredictionLis
         } else {
             if (!this.mIsRunning || intent == null) {
                 //initial service start or starting after kill
-                Log.d("HoverMenuService", "onStartCommand() ");
                 initPredictionEngine();
                 this.initHoverMenu();
                 this.mIsRunning = true;
@@ -82,7 +80,10 @@ public class PredictionHoverMenuService extends Service implements PredictionLis
                 if (intent.hasExtra(INTENT_EXTRA_SCREEN_ON)) {
                     boolean screenOn = intent.getBooleanExtra(INTENT_EXTRA_SCREEN_ON, false);
                     if (screenOn) {
-                        predictionEngine.addEvent(new Event());
+                        List<Prediction> predictions = predictionEngine.addEventSynchronous(new Event());
+                        if (predictions != null) {
+                            showPredictions(predictions);
+                        }
                     }
                 } else if (intent.hasExtra(INTENT_EXTRA_PREDICTIONS)) {
                     createMenu(intent);
@@ -101,10 +102,13 @@ public class PredictionHoverMenuService extends Service implements PredictionLis
             this.mIsRunning = false;
         }
         if (this.predictionEngine != null) {
-            this.predictionEngine.removePredictionListener(this);
+//            this.predictionEngine.removePredictionListener(this);
         }
         unregisterScreenState();
 
+        //Send broadcast to restart this service
+//        Intent broadcastIntent = new Intent(this, AppRestartReceiver.class);
+//        sendBroadcast(broadcastIntent);
     }
 
     @Nullable
@@ -132,7 +136,7 @@ public class PredictionHoverMenuService extends Service implements PredictionLis
 
 
     private void initHoverMenu() {
-        this.mHoverView = HoverView.createForWindow(this, new WindowViewController((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)), new SideDock.SidePosition(1, 0.5F));
+        this.mHoverView = HoverView.createForWindow(this, new WindowViewController((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)), new SideDock.SidePosition(SideDock.SidePosition.RIGHT, 0.5F));
         this.mHoverView.setOnExitListener(this.mOnMenuOnExitListener);
         this.mHoverView.addToWindow();
     }
@@ -163,33 +167,31 @@ public class PredictionHoverMenuService extends Service implements PredictionLis
 
     private void initPredictionEngine() {
         this.predictionEngine = PredictionEngine.getInstance(this.getApplicationContext());
-        this.predictionEngine.addPredictionListener(this);
+//        this.predictionEngine.addPredictionListener(this);
     }
 
     private void createMenu(@NonNull Intent intent) {
-        HoverView hoverView = getHoverView();
         if (intent.hasExtra(INTENT_EXTRA_PREDICTIONS)) {
-            HoverMenu menu = new MultiSectionHoverMenu(this, (List<Prediction>) intent.getSerializableExtra(INTENT_EXTRA_PREDICTIONS), this);
+            showPredictions((List<Prediction>) intent.getSerializableExtra(INTENT_EXTRA_PREDICTIONS));
+        }
+    }
+
+    private void showPredictions(List<Prediction> predictions) {
+        if (predictions != null && !predictions.isEmpty()) {
+            HoverView hoverView = getHoverView();
+            HoverMenu menu = new MultiSectionHoverMenu(this, predictions, this);
             hoverView.setMenu(menu);
             hoverView.collapse();
         }
     }
 
-    @Override
-    public void onPredictions(List<Prediction> predictions) {
-
-        Intent intent = new Intent(this.getApplicationContext(), PredictionHoverMenuService.class);
-        intent.putExtra(INTENT_EXTRA_PREDICTIONS, new ArrayList<Prediction>(predictions));
-        startService(intent);
-
-//        HoverView hoverView = HoverView.createForWindow(this,
-//                new WindowViewController((WindowManager) getSystemService(Context.WINDOW_SERVICE))
-//        );
-//        HoverMenu menu = new SingleSectionHoverMenu(this);
-//        hoverView.setMenu(menu);
-//        hoverView.addToWindow();
-//        hoverView.collapse();
-    }
+//    @Override
+//    public void onPredictions(List<Prediction> predictions) {
+//
+//        Intent intent = new Intent(this.getApplicationContext(), PredictionHoverMenuService.class);
+//        intent.putExtra(INTENT_EXTRA_PREDICTIONS, new ArrayList<Prediction>(predictions));
+//        startService(intent);
+//    }
 
     @Override
     public void onItemSelect(View v, Prediction item) {

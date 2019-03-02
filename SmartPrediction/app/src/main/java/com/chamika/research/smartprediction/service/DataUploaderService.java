@@ -34,7 +34,7 @@ public class DataUploaderService extends BroadcastReceiver {
 
         String id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         String filename = new SimpleDateFormat("yyyyMMddHH:mm:ss.SSS", Locale.US).format(new Date()) + ".db";
-
+        Log.d(TAG, "Starting to upload to directory:" + id);
         StorageReference fileRef = storageRef.child("userData").child(id).child(filename);
         try {
             File currentDB = context.getDatabasePath("events.db");
