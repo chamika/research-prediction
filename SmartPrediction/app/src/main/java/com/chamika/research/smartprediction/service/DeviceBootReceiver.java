@@ -16,7 +16,7 @@ public class DeviceBootReceiver extends BroadcastReceiver {
 //        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
         setupPeriodicalDataCollection(context);
         setupDataUploading(context);
-        context.startService(new Intent(context.getApplicationContext(), BackgroundService.class));
+        context.startService(new Intent(context.getApplicationContext(), UserActivityCollectorService.class));
 //        }
     }
 
@@ -29,7 +29,7 @@ public class DeviceBootReceiver extends BroadcastReceiver {
     }
 
     private void setupPeriodicalDataCollection(Context context) {
-        Intent alarmIntent = new Intent(context, DataCollectorService.class);
+        Intent alarmIntent = new Intent(context, ScheduleDataCollectorService.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         int interval = Config.DATA_COLLECTION_REFRESH_INTERVAL;

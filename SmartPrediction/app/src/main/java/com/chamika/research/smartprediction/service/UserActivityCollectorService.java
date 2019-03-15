@@ -47,9 +47,9 @@ import java.util.TimerTask;
  * Created by chamika on 9/11/16.
  */
 
-public class BackgroundService extends Service {
+public class UserActivityCollectorService extends Service {
 
-    private static final String TAG = BackgroundService.class.getSimpleName();
+    private static final String TAG = UserActivityCollectorService.class.getSimpleName();
 
     private static Timer timer;
     private final IBinder binder = new LocalBinder();
@@ -318,9 +318,9 @@ public class BackgroundService extends Service {
      * runs in the same process as its clients, we don't need to deal with IPC.
      */
     public class LocalBinder extends Binder {
-        public BackgroundService getService() {
-            // Return this instance of BackgroundService so clients can call public methods
-            return BackgroundService.this;
+        public UserActivityCollectorService getService() {
+            // Return this instance of UserActivityCollectorService so clients can call public methods
+            return UserActivityCollectorService.this;
         }
     }
 

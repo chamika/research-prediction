@@ -26,8 +26,8 @@ public class ScreenReceiver extends BroadcastReceiver {
             Log.i(TAG, "Screen OFF");
         }
         if (needEvent) {
-            Intent i = new Intent(context, PredictionHoverMenuService.class);
-            i.putExtra(PredictionHoverMenuService.INTENT_EXTRA_SCREEN_ON, screenOn);
+            Intent i = new Intent(context, PredictionService.class);
+            i.putExtra(PredictionService.INTENT_EXTRA_SCREEN_ON, screenOn);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(i);
             } else {

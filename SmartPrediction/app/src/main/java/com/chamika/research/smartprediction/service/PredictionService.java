@@ -1,9 +1,11 @@
 
 package com.chamika.research.smartprediction.service;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -29,6 +31,7 @@ import com.chamika.research.smartprediction.prediction.Prediction;
 import com.chamika.research.smartprediction.prediction.PredictionEngine;
 import com.chamika.research.smartprediction.ui.hover.MultiSectionHoverMenu;
 import com.chamika.research.smartprediction.ui.hover.adapters.OnItemSelectListener;
+import com.chamika.research.smartprediction.util.Config;
 
 import java.util.List;
 
@@ -39,13 +42,13 @@ import io.mattcarroll.hover.SideDock;
 import io.mattcarroll.hover.overlay.OverlayPermission;
 import io.mattcarroll.hover.window.WindowViewController;
 
-public class PredictionHoverMenuService extends Service implements OnItemSelectListener<Prediction> {
+public class PredictionService extends Service implements OnItemSelectListener<Prediction> {
 
     public static final String INTENT_EXTRA_PREDICTIONS = "predictions";
     public static final String INTENT_EXTRA_SCREEN_ON = "screenOn";
     public static final String INTENT_EXTRA_SCREEN_EVENT = "event";
     public static final String INTENT_EXTRA_STOP = "stop";
-    private static final String TAG = PredictionHoverMenuService.class.getSimpleName();
+    private static final String TAG = PredictionService.class.getSimpleName();
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
     private PredictionEngine predictionEngine;
     private boolean screenReceiverRegistered = false;
@@ -55,16 +58,15 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
     private OnExitListener mOnMenuOnExitListener = new OnExitListener() {
         public void onExit() {
             Log.d("HoverMenuService", "Menu exit requested. Exiting.");
-//            PredictionHoverMenuService.this.mHoverView.removeFromWindow();
-//            PredictionHoverMenuService.this.onHoverMenuExitingByUserRequest();
-//            PredictionHoverMenuService.this.stopSelf();
+//            PredictionService.this.mHoverView.removeFromWindow();
+//            PredictionService.this.onHoverMenuExitingByUserRequest();
+//            PredictionService.this.stopSelf();
         }
     };
 
     public void onCreate() {
         Log.d("HoverMenuService", "onCreate()");
         startNotification();
-
     }
 
     public void startNotification() {
@@ -120,6 +122,8 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
                 if (intent != null) {
                     createMenu(intent);
                 }
+                startDataCollection();
+                scheduleDatabaseUpload(this);
             } else {
                 if (intent.hasExtra(INTENT_EXTRA_SCREEN_ON)) {
                     boolean screenOn = intent.getBooleanExtra(INTENT_EXTRA_SCREEN_ON, false);
@@ -163,6 +167,37 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
     @Nullable
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void startDataCollection() {
+        Context context = this;
+
+        //ACTIVITY, LOCATION
+        this.startService(new Intent(context.getApplicationContext(), UserActivityCollectorService.class));
+        Log.d(TAG, "Started activity collection");
+
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager != null) {
+            //SMS,CALL
+            Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+            int interval = Config.DATA_COLLECTION_REFRESH_INTERVAL;
+            manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+            Log.d(TAG, "Started APP, SMS and CALL collection");
+        } else {
+            Log.d(TAG, "Alarm manager is null");
+        }
+    }
+
+    private void scheduleDatabaseUpload(Context context) {
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager != null) {
+            Intent alarmIntent = new Intent(context, DataUploaderService.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+            int interval = Config.DATA_UPLOAD_INTERVAL;
+            manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, interval, pendingIntent);
+            Log.d(TAG, "Scheduled uploading data");
+        }
     }
 
     private void registerScreenState() {
@@ -239,7 +274,7 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
 //    @Override
 //    public void onPredictions(List<Prediction> predictions) {
 //
-//        Intent intent = new Intent(this.getApplicationContext(), PredictionHoverMenuService.class);
+//        Intent intent = new Intent(this.getApplicationContext(), PredictionService.class);
 //        intent.putExtra(INTENT_EXTRA_PREDICTIONS, new ArrayList<Prediction>(predictions));
 //        startService(intent);
 //    }

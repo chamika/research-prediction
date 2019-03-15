@@ -42,7 +42,7 @@
         <activity android:name=".ui.dataview.DataViewActivity" />
         <activity android:name=".ui.results.ResultsActivity" />
 
-        <receiver android:name=".service.DataCollectorService">
+        <receiver android:name=".service.ScheduleDataCollectorService">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
@@ -77,8 +77,8 @@
             android:label="RestartServiceWhenStopped"></receiver>
 
 
-        <service android:name=".service.BackgroundService" />
-        <service android:name=".service.PredictionHoverMenuService" />
+        <service android:name=".service.UserActivityCollectorService" />
+        <service android:name=".service.PredictionService" />
     </application>
 
 </manifest>

@@ -14,13 +14,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
  * Created by chamika on 3/12/17.
  */
 
-public class DataCollectorService extends BroadcastReceiver {
+public class ScheduleDataCollectorService extends BroadcastReceiver {
 
-    private static final String TAG = DataCollectorService.class.getSimpleName();
+    private static final String TAG = ScheduleDataCollectorService.class.getSimpleName();
 
     private GoogleApiClient client;
 
-    public DataCollectorService() {
+    public ScheduleDataCollectorService() {
         super();
     }
 

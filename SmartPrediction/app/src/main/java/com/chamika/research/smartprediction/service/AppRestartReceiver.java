@@ -12,7 +12,7 @@ public class AppRestartReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive()");
-        Intent serviceIntent = new Intent(context.getApplicationContext(), PredictionHoverMenuService.class);
+        Intent serviceIntent = new Intent(context.getApplicationContext(), PredictionService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.getApplicationContext().startForegroundService(serviceIntent);
         } else {

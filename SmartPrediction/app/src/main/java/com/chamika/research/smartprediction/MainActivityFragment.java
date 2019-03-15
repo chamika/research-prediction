@@ -23,10 +23,10 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import com.chamika.research.smartprediction.prediction.Event;
-import com.chamika.research.smartprediction.service.BackgroundService;
-import com.chamika.research.smartprediction.service.DataCollectorService;
 import com.chamika.research.smartprediction.service.DataUploaderService;
-import com.chamika.research.smartprediction.service.PredictionHoverMenuService;
+import com.chamika.research.smartprediction.service.PredictionService;
+import com.chamika.research.smartprediction.service.ScheduleDataCollectorService;
+import com.chamika.research.smartprediction.service.UserActivityCollectorService;
 import com.chamika.research.smartprediction.ui.dataview.DataViewActivity;
 import com.chamika.research.smartprediction.ui.results.ResultsActivity;
 import com.chamika.research.smartprediction.util.Config;
@@ -61,7 +61,7 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         Context context = this.getContext();
-        Intent alarmIntent = new Intent(context.getApplicationContext(), DataCollectorService.class);
+        Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
         pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
 
         initCheckBoxDangerousPermission(rootView, R.id.check_calls, android.Manifest.permission.READ_CALL_LOG, PERMISSIONS_REQUEST_READ_CALL_LOG, Constant.PREF_CALL);
@@ -196,7 +196,7 @@ public class MainActivityFragment extends Fragment {
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
 
         //ACTIVITY, LOCATION
-        this.getActivity().startService(new Intent(context.getApplicationContext(), BackgroundService.class));
+        this.getActivity().startService(new Intent(context.getApplicationContext(), UserActivityCollectorService.class));
 
         scheduleDatabaseUpload(context);
         Toast.makeText(context, "Started collecting data", Toast.LENGTH_SHORT).show();
@@ -206,7 +206,7 @@ public class MainActivityFragment extends Fragment {
         Context context = this.getContext();
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         manager.cancel(pendingIntent);
-        this.getActivity().stopService(new Intent(context.getApplicationContext(), BackgroundService.class));
+        this.getActivity().stopService(new Intent(context.getApplicationContext(), UserActivityCollectorService.class));
 
         Toast.makeText(context, "Stopped collecting data", Toast.LENGTH_SHORT).show();
     }
@@ -225,9 +225,9 @@ public class MainActivityFragment extends Fragment {
         Context context = this.getContext();
         if (context != null) {
             if (OverlayPermission.hasRuntimePermissionToDrawOverlay(context)) {
-                Intent intent = new Intent(context.getApplicationContext(), PredictionHoverMenuService.class);
+                Intent intent = new Intent(context.getApplicationContext(), PredictionService.class);
                 if (serviceRunning) {
-                    intent.putExtra(PredictionHoverMenuService.INTENT_EXTRA_STOP, true);
+                    intent.putExtra(PredictionService.INTENT_EXTRA_STOP, true);
                 }
                 serviceRunning = !serviceRunning;
                 startHoverService(intent);
@@ -239,8 +239,8 @@ public class MainActivityFragment extends Fragment {
     }
 
     private void sendEvent(Event event) {
-        Intent i = new Intent(this.getContext(), PredictionHoverMenuService.class);
-        i.putExtra(PredictionHoverMenuService.INTENT_EXTRA_SCREEN_EVENT, event);
+        Intent i = new Intent(this.getContext(), PredictionService.class);
+        i.putExtra(PredictionService.INTENT_EXTRA_SCREEN_EVENT, event);
         startHoverService(i);
     }
 
