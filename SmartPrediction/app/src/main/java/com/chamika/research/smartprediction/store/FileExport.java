@@ -89,10 +89,8 @@ public class FileExport {
                 d1 = data1.hashCode();
                 String text = eventType + "|" + data1 + "|" + sdf.format(cal.getTime());
 
-//                        String format = String.format("%.0f,%.0f,%.0f,%.0f,%s", dayOfWeek, timeOfDay, event, d1, text);
-                String format = String.format(Locale.US, "%.4f,%.4f,%.0f,%s", dayOfWeek, timeOfDay, event, text);
-//                        String format = String.format("%.0f,%.0f,%.0f,%.0f,%s", d1, event, timeOfDay, dayOfWeek, text);
-//                        String format = String.format(Locale.US,"%.0f,%.0f,%.0f,%s", event, timeOfDay, dayOfWeek, text);
+//                String format = String.format(Locale.US, "%.4f,%.4f,%.0f,%s", dayOfWeek, timeOfDay, event, text);
+                String format = String.format(Locale.US, "%.4f,%.4f,%s", dayOfWeek, timeOfDay, text);
                 Log.d(TAG, format);
                 bw.write(format);
                 bw.newLine();
@@ -126,6 +124,6 @@ public class FileExport {
     }
 
     public static double getDayOfWeek(Calendar cal) {
-        return cal.get(Calendar.DAY_OF_WEEK) / 7.0;
+        return (cal.get(Calendar.DAY_OF_WEEK) - 1) / 6.0;
     }
 }

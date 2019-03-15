@@ -103,7 +103,7 @@ public class PredictionHoverMenuService extends Service implements OnItemSelectL
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("HoverMenuService", "onStartCommand() ");
-        if (intent.hasExtra(INTENT_EXTRA_STOP)) {
+        if (intent != null && intent.hasExtra(INTENT_EXTRA_STOP)) {
             stopForeground(true);
             stopSelf();
         }

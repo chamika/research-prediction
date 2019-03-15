@@ -7,11 +7,12 @@ import android.widget.TextView;
 
 import com.chamika.research.smartprediction.R;
 
-public class ClusterAdapter extends RecyclerView.Adapter<ClusterAdapter.ViewHolder> {
-    private String[] mDataset;
+import java.util.List;
 
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public ClusterAdapter(String[] myDataset) {
+public class ClusterAdapter extends RecyclerView.Adapter<ClusterAdapter.ViewHolder> {
+    private List<String> mDataset;
+
+    public ClusterAdapter(List<String> myDataset) {
         mDataset = myDataset;
     }
 
@@ -31,14 +32,14 @@ public class ClusterAdapter extends RecyclerView.Adapter<ClusterAdapter.ViewHold
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.mTextView.setText(mDataset[position]);
+        holder.mTextView.setText(mDataset.get(position));
 
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return mDataset.length;
+        return mDataset.size();
     }
 
     // Provide a reference to the views for each data item

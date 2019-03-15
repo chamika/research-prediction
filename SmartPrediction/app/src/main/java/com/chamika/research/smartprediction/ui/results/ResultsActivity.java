@@ -1,44 +1,51 @@
 package com.chamika.research.smartprediction.ui.results;
 
-import android.os.AsyncTask;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.chamika.research.smartprediction.R;
-import com.chamika.research.smartprediction.util.Clustering;
+import com.chamika.research.smartprediction.prediction.Event;
+import com.chamika.research.smartprediction.prediction.PredictionProcessor;
 import com.chamika.research.smartprediction.util.Config;
 
 import net.sf.javaml.core.Dataset;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
-public class ResultsActivity extends AppCompatActivity {
+public class ResultsActivity extends AppCompatActivity implements PredictionProcessor.InitializationListener, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener {
 
     public static final String TAG = ResultsActivity.class.getSimpleName();
     private EditText edtFilepath;
     private EditText edtClusterAmount;
     private TextView txtClusterDetail;
-    private SeekBar seekTime;
-    private TextView txtSelectedTime;
     private RecyclerView recClusters;
     private ProgressBar progressBar;
+    private Button btnDate;
+    private Button btnTime;
 
-    private NavigableMap<Integer, Dataset> clusteredData = new TreeMap<>();
     private LinearLayoutManager layoutManager;
     private RecyclerView.Adapter adapter;
+    private PredictionProcessor predictionProcessor;
+
+    private Calendar selectedTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,103 +56,131 @@ public class ResultsActivity extends AppCompatActivity {
     }
 
     private void init() {
+        selectedTime = Calendar.getInstance();
+        selectedTime.setTime(new Date());
+
         edtFilepath = (EditText) findViewById(R.id.edt_file_path);
         edtClusterAmount = (EditText) findViewById(R.id.edt_cluster_amount);
         txtClusterDetail = (TextView) findViewById(R.id.txt_cluster_detail);
-        seekTime = (SeekBar) findViewById(R.id.seek_time);
         recClusters = (RecyclerView) findViewById(R.id.rec_clusters);
         progressBar = (ProgressBar) findViewById(R.id.progress);
-        txtSelectedTime = (TextView) findViewById(R.id.txtSelectedTime);
+        btnDate = findViewById(R.id.btn_date);
+        btnTime = findViewById(R.id.btn_time);
 
         String path = new File(this.getFilesDir(), Config.DATA_FILE_NAME).getAbsolutePath();
         edtFilepath.setText(path);
 
         progressBar.setVisibility(View.INVISIBLE);
 
-        seekTime.setEnabled(false);
-        seekTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                updateSeekTime(progress);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                loadTime(seekBar.getProgress());
-            }
-        });
-
         // use a linear layout manager
         layoutManager = new LinearLayoutManager(this);
         recClusters.setLayoutManager(layoutManager);
+
+        enableElements(false);
+        updateDateTime();
+
+        btnTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Calendar cal = ResultsActivity.this.selectedTime;
+                int hour = cal.get(Calendar.HOUR_OF_DAY);
+                int minute = cal.get(Calendar.MINUTE);
+                TimePickerDialog timePickerDialog = new TimePickerDialog(ResultsActivity.this, ResultsActivity.this, hour, minute, false);
+                timePickerDialog.show();
+            }
+        });
+
+        btnDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Calendar c = selectedTime;
+                int year = c.get(Calendar.YEAR);
+                int month = c.get(Calendar.MONTH);
+                int day = c.get(Calendar.DAY_OF_MONTH);
+
+                // Create a new instance of DatePickerDialog and return it
+                DatePickerDialog datePickerDialog = new DatePickerDialog(ResultsActivity.this, ResultsActivity.this, year, month, day);
+                datePickerDialog.show();
+            }
+        });
     }
 
     public void clickLoad(View v) {
-        new ClusteringTask().execute(edtFilepath.getText().toString(), edtClusterAmount.getText().toString());
+        predictionProcessor = new PredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
+        predictionProcessor.setInitializationListener(this);
+        predictionProcessor.init();
+
+        progressBar.setVisibility(View.VISIBLE);
+        enableElements(false);
     }
 
-    private void loadTime(int time) {
-        int timeWithSecs = updateSeekTime(time);
-        Map.Entry<Integer, Dataset> entry = clusteredData.floorEntry(timeWithSecs);
-        if (entry != null) {
-            Dataset dataset = entry.getValue();
-            Log.d(TAG, dataset.get(0).toString());
-            Log.d(TAG, dataset.get(dataset.size() - 1).toString());
+    private void loadData() {
+        if (predictionProcessor != null && predictionProcessor.isInitialized()) {
+            Event event = new Event(selectedTime.getTime());
+            List<Event> events = new ArrayList<>();
+            events.add(event);
+            Map.Entry<Double, List<Dataset>> entry = predictionProcessor.queryClusterDataset(events);
 
-            String[] strings = new String[dataset.size()];
-            for (int i = 0; i < dataset.size(); i++) {
-                strings[i] = (String) dataset.get(i).classValue();
-            }
-            adapter = new ClusterAdapter(strings);
-            recClusters.setAdapter(adapter);
-        }
-    }
+            if (entry != null) {
+                List<String> allData = new ArrayList<>();
 
-    private int updateSeekTime(int time) {
-        int timeWithSecs = (time / 6) * 10000 + (time % 6) * 1000;
-        txtSelectedTime.setText(String.format(Locale.US, "%02d:%02d", time / 6, time * 10 % 60));
-        return timeWithSecs;
-    }
-
-    private class ClusteringTask extends AsyncTask<String, Void, Dataset[]> {
-
-        private long startTime;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            startTime = System.currentTimeMillis();
-            progressBar.setVisibility(View.VISIBLE);
-            seekTime.setEnabled(false);
-        }
-
-        @Override
-        protected Dataset[] doInBackground(String... params) {
-            try {
-                return new Clustering().doCluster(params[0], Integer.parseInt(params[1]), 5);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Dataset[] datasets) {
-            super.onPostExecute(datasets);
-            if (datasets != null && datasets.length > 0) {
-                seekTime.setEnabled(true);
-                clusteredData.clear();
-                for (Dataset dataset : datasets) {
-                    clusteredData.put((int) Math.round(dataset.get(0).value(1)), dataset);
+                List<Dataset> datasetList = entry.getValue();
+                if (datasetList != null) {
+                    for (Dataset dataset : datasetList) {
+                        for (int i = 0; i < dataset.size(); i++) {
+                            allData.add((String) dataset.get(i).classValue());
+                        }
+                    }
                 }
+
+                adapter = new ClusterAdapter(allData);
+                recClusters.setAdapter(adapter);
             }
-            progressBar.setVisibility(View.INVISIBLE);
-            txtClusterDetail.setText(getString(R.string.clustering_time).replace("#", String.valueOf((System.currentTimeMillis() - startTime) / 1000.0)));
+        } else {
+            Toast.makeText(this, "Prediction processor is not ready", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void onInitializedSuccess(long timeInMillis) {
+        progressBar.setVisibility(View.INVISIBLE);
+        enableElements(true);
+        txtClusterDetail.setText(getString(R.string.clustering_time).replace("#", String.valueOf(timeInMillis / 1000.0)));
+    }
+
+    @Override
+    public void onInitializedFailed() {
+        progressBar.setVisibility(View.INVISIBLE);
+    }
+
+    private void enableElements(boolean enable) {
+        btnDate.setEnabled(enable);
+        btnTime.setEnabled(enable);
+    }
+
+    private void updateDateTime() {
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm");
+
+        Date time = selectedTime.getTime();
+        btnDate.setText(sdf1.format(time));
+        btnTime.setText(sdf2.format(time));
+    }
+
+    @Override
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        selectedTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        selectedTime.set(Calendar.MINUTE, minute);
+        updateDateTime();
+        loadData();
+    }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+        selectedTime.set(Calendar.YEAR, year);
+        selectedTime.set(Calendar.MONTH, month);
+        selectedTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        updateDateTime();
+        loadData();
     }
 }

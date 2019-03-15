@@ -3,8 +3,9 @@ package com.chamika.research.smartprediction.util;
 
 import android.util.Log;
 
+import com.chamika.research.smartprediction.prediction.KMeans;
+
 import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.clustering.evaluation.ClusterEvaluation;
 import net.sf.javaml.clustering.evaluation.SumOfSquaredErrors;
 import net.sf.javaml.core.Dataset;
@@ -48,7 +49,7 @@ public class Clustering {
 
     public Dataset[] doCluster(String fileAbsolutePath, int clusterCount, int iterations) throws IOException {
         /* Load a dataset */
-        Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), 3, ",");
+        Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), 2, ",");
         /* Create a new instance of the KMeans algorithm, with no options
          * specified. By default this will generate 4 clusters. */
         Log.d(TAG, String.format("clustering started. clusterCount=%d iterations=%d", clusterCount, iterations));
@@ -74,20 +75,26 @@ public class Clustering {
 //            for (Instance instance : cluster) {
 //                Log.d(TAG,"Cluster  " + i + "->" + instance.toString());
 //            }
-            Log.d(TAG, "Cluster  " + i + "->" + cluster.get(0).toString());
-            Log.d(TAG, "Cluster  " + i + "->" + cluster.get(cluster.size() - 1).toString());
+            if (cluster.size() > 0) {
+                Log.d(TAG, "Cluster  " + i + "->" + cluster.get(0).toString());
+                Log.d(TAG, "Cluster  " + i + "->" + cluster.get(cluster.size() - 1).toString());
+            }
         }
 
         for (int i = 0; i < clusters.length; i++) {
             Dataset cluster1 = clusters[i];
-            for (int j = i + 1; j < clusters.length; j++) {
-                Dataset cluster2 = clusters[j];
-                if (overlapped(cluster1, cluster2)) {
-                    Log.d(TAG, "overlapped:");
-                    Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(0).toString());
-                    Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(cluster1.size() - 1).toString());
-                    Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(0).toString());
-                    Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(cluster2.size() - 1).toString());
+            if (cluster1.size() > 0) {
+                for (int j = i + 1; j < clusters.length; j++) {
+                    Dataset cluster2 = clusters[j];
+                    if (cluster2.size() > 0) {
+                        if (overlapped(cluster1, cluster2)) {
+                            Log.d(TAG, "overlapped:");
+                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(0).toString());
+                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(cluster1.size() - 1).toString());
+                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(0).toString());
+                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(cluster2.size() - 1).toString());
+                        }
+                    }
                 }
             }
         }
