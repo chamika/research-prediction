@@ -61,12 +61,15 @@ public class Clustering {
         Log.d(TAG, "clustering finished. count = " + clusters.length);
         ClusterEvaluation sse = new SumOfSquaredErrors();
 //        Log.d(TAG,"score = " + sse.score(clusters));
+
+        //sort to make
         for (int i = 0; i < clusters.length; i++) {
             Log.d(TAG, "Cluster " + i + " size:" + clusters[i].size());
+            final int finalI = i;
             Collections.sort(clusters[i], new Comparator<Instance>() {
                 @Override
                 public int compare(Instance o1, Instance o2) {
-                    return (int) Math.round(o1.value(1) * 100 - o2.value(1) * 100);
+                    return (int) Math.round((o1.value(0) + o1.value(1)) - (o2.value(0) + o2.value(1)));
                 }
             });
         }
@@ -82,23 +85,23 @@ public class Clustering {
             }
         }
 
-        for (int i = 0; i < clusters.length; i++) {
-            Dataset cluster1 = clusters[i];
-            if (cluster1.size() > 0) {
-                for (int j = i + 1; j < clusters.length; j++) {
-                    Dataset cluster2 = clusters[j];
-                    if (cluster2.size() > 0) {
-                        if (overlapped(cluster1, cluster2)) {
-                            Log.d(TAG, "overlapped:");
-                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(0).toString());
-                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(cluster1.size() - 1).toString());
-                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(0).toString());
-                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(cluster2.size() - 1).toString());
-                        }
-                    }
-                }
-            }
-        }
+//        for (int i = 0; i < clusters.length; i++) {
+//            Dataset cluster1 = clusters[i];
+//            if (cluster1.size() > 0) {
+//                for (int j = i + 1; j < clusters.length; j++) {
+//                    Dataset cluster2 = clusters[j];
+//                    if (cluster2.size() > 0) {
+//                        if (overlapped(cluster1, cluster2)) {
+//                            Log.d(TAG, "overlapped:");
+//                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(0).toString());
+//                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(cluster1.size() - 1).toString());
+//                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(0).toString());
+//                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(cluster2.size() - 1).toString());
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         return clusters;
     }

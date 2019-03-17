@@ -166,6 +166,10 @@ public class BaseStore {
 //    }
 
     public static Cursor getAllEvents(Context context) {
+        return getAllEvents(context, "DESC");
+    }
+
+    public static Cursor getAllEvents(Context context, String sort) {
         initReadableDB(context);
 
         String[] projection = {
@@ -182,7 +186,7 @@ public class BaseStore {
 //        String selection = EventsStructure.COLUMN_NAME_TYPE + " = ? and " + EventsStructure.COLUMN_NAME_STATE + " = ?";
 //        String[] selectionArgs = {type, state};
 
-        String sortOrder = EventsStructure.COLUMN_NAME_TIME + " DESC";
+        String sortOrder = EventsStructure.COLUMN_NAME_TIME + " " + sort;
 
         return dbReadable.query(
                 EventsStructure.TABLE_NAME_EVENTS,      // The table to query
@@ -225,7 +229,6 @@ public class BaseStore {
                 sortOrder       // The sort order
         );
     }
-
 
 
     public static void closeDBs() {

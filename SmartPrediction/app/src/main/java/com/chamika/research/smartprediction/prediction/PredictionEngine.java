@@ -54,9 +54,11 @@ public class PredictionEngine {
             return;
         }
 
-        Event activityEvent = getActivityEvent(event);
-        if (activityEvent != null) {
-            event.setData(activityEvent.getData());
+        if (event.getData() == null) {
+            Event activityEvent = getActivityEvent(event);
+            if (activityEvent != null) {
+                event.setData(activityEvent.getData());
+            }
         }
 
         List<Prediction> predictions = processor.processEvent(event);
@@ -71,9 +73,11 @@ public class PredictionEngine {
             return null;
         }
 
-        Event activityEvent = getActivityEvent(event);
-        if (activityEvent != null) {
-            event.setData(activityEvent.getData());
+        if (event.getData() == null) {
+            Event activityEvent = getActivityEvent(event);
+            if (activityEvent != null) {
+                event.setData(activityEvent.getData());
+            }
         }
 
         List<Prediction> predictions = processor.processEvent(event);
@@ -119,6 +123,7 @@ public class PredictionEngine {
         if (cursor.moveToFirst()) {
             Event activityEvent = new Event(new Date(cursor.getLong(cursor.getColumnIndex(BaseStore.EventsStructure.COLUMN_NAME_TIME))));
 //            activityEvent.setData(cursor);
+            activityEvent.setData(cursor.getString(cursor.getColumnIndex(BaseStore.EventsStructure.COLUMN_NAME_DATA1)));
             return activityEvent;
         }
         return null;

@@ -15,13 +15,14 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class PredictionProcessor {
     private static int PREDICTION_PROCESSOR_ID = 1;
@@ -37,7 +38,8 @@ public class PredictionProcessor {
     private int clusterCount;
     private NavigableMap<Double, List<Dataset>> clusteredData = new TreeMap<>();
     private InitializationListener initializationListener;
-    private ClusteringDataMapper dataMapper = new TimeBasedDataMapper();
+    //    private ClusteringDataMapper dataMapper = new  new TimeBasedDataMapper();
+    private ClusteringDataMapper dataMapper = new TimeActivityBasedDataMapper(10);
 
     public PredictionProcessor(Context context) {
         this.context = context;
@@ -76,7 +78,7 @@ public class PredictionProcessor {
             //TODO fix for multiple events
             Map.Entry<Double, List<Dataset>> entry = queryClusterDataset(events);
             if (entry != null) {
-                Set<String> set = new HashSet<>();
+                HashMap<String, Integer> map = new HashMap<>();
                 List<Dataset> datasets = entry.getValue();
                 for (Dataset dataset : datasets) {
                     Log.d(TAG, dataset.get(0).toString());
@@ -88,13 +90,38 @@ public class PredictionProcessor {
                     for (int i = 0; i < size; i++) {
                         String event = (String) dataset.get(i).classValue();
                         String[] split = event.split("\\|");
-                        set.add(split[0] + "|" + split[1]);
+                        String key = split[0] + "|" + split[1];
+                        Integer count = map.get(key);
+                        if (count == null) {
+                            map.put(key, 1);
+                        } else {
+                            map.put(key, count + 1);
+                        }
                     }
                 }
 
-                //TODO create predictions
+                //create predictions
+                //limit predictions using map of counts
+                SortedSet<Map.Entry<String, Integer>> sortedEntriesByValue = new TreeSet<>(
+                        new Comparator<Map.Entry<String, Integer>>() {
+                            @Override
+                            public int compare(Map.Entry<String, Integer> e1, Map.Entry<String, Integer> e2) {
+//                                return e1.getValue().compareTo(e2.getValue());
+                                return e2.getValue().compareTo(e1.getValue());//reverse order
+                            }
+                        }
+                );
+
+                sortedEntriesByValue.addAll(map.entrySet());
+
+
+                //TODO implement MAX_PREDICTION based on prediction type
                 int count = 1;
-                for (String event : set) {
+                for (Map.Entry<String, Integer> mapEntry : sortedEntriesByValue) {
+                    if (count > MAX_PREDICTIONS) {
+                        break;
+                    }
+                    String event = mapEntry.getKey();
                     String[] split = event.split("\\|");
                     String eventType = split[0];
                     Prediction prediction = null;
@@ -119,7 +146,7 @@ public class PredictionProcessor {
     }
 
     public Map.Entry<Double, List<Dataset>> queryClusterDataset(List<Event> events) {
-        double key = generateKey(events.get(0));
+        double key = dataMapper.generateKey(events.get(0));
         return clusteredData.ceilingEntry(key);
     }
 
@@ -129,24 +156,6 @@ public class PredictionProcessor {
 
     public int getPredictionProcessorId() {
         return PREDICTION_PROCESSOR_ID;
-    }
-
-    private double generateKey(Dataset dataset) {
-        double dayOfWeek = dataset.get(0).value(0);
-        double timestep = dataset.get(0).value(1);
-        return generateKey(dayOfWeek, timestep);
-    }
-
-    private double generateKey(Event event) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(event.getDate());
-        double dayOfWeek = TimeBasedDataMapper.getDayOfWeek(cal);
-        double timestep = TimeBasedDataMapper.getTimeOfDay(cal);
-        return generateKey(dayOfWeek, timestep);
-    }
-
-    private double generateKey(double dayOfWeek, double timestep) {
-        return Math.round(dayOfWeek * 6.0) + timestep;
     }
 
     public interface InitializationListener {
@@ -200,7 +209,7 @@ public class PredictionProcessor {
                     if (dataset.size() == 0) {
                         continue;
                     }
-                    double key = generateKey(dataset);
+                    double key = dataMapper.generateKey(dataset);
                     List<Dataset> datasetList = clusteredData.get(key);
                     if (datasetList == null) {
                         datasetList = new ArrayList<>();

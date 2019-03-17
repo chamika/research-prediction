@@ -11,15 +11,27 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class TimeBasedDataMapper implements ClusteringDataMapper {
+/**
+ * Time and activity based data mapper.
+ * Data need to be feed in Ascending manner in order to work capture and write the last activity
+ */
+public class TimeActivityBasedDataMapper implements ClusteringDataMapper {
 
-    private final static String TAG = TimeBasedDataMapper.class.getSimpleName();
+    private final static String TAG = TimeActivityBasedDataMapper.class.getSimpleName();
 
     private static final boolean ENABLE_APP = true;
     private static final boolean ENABLE_SMS = true;
     private static final boolean ENABLE_CALL = true;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss", Locale.US);
+    private String lastActivity;
+    private long lastActivityTime;
+
+    private int lookBackMins = 10;
+
+    public TimeActivityBasedDataMapper(int lookBackMins) {
+        this.lookBackMins = lookBackMins;
+    }
 
     public static double getTimeOfDay(Calendar cal) {
         return (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)) / 1440.0;
@@ -77,29 +89,41 @@ public class TimeBasedDataMapper implements ClusteringDataMapper {
             return null;
         }
 
+        if (event == 1.0) {
+            // update latest activity and skip recording ACT types
+            lastActivity = data1;
+            lastActivityTime = timeInMilis;
+            return null;
+        }
+
         if ((!ENABLE_APP && event == 5.0) || (!ENABLE_CALL && event == 3.0) || (!ENABLE_SMS && event == 4.0)) {
             return null;
         }
 
-        d1 = data1.hashCode();
         String text = eventType + "|" + data1 + "|" + sdf.format(cal.getTime());
 
-//                String format = String.format(Locale.US, "%.4f,%.4f,%.0f,%s", dayOfWeek, timeOfDay, event, text);
-        String format = String.format(Locale.US, "%.4f,%.4f,%s", dayOfWeek, timeOfDay, text);
+        double activity = 0D;
+        if (lastActivityTime >= (timeInMilis - (lookBackMins * 60 * 1000))) {//lastActivity is within ex:10 minutes of current Activity
+            activity = mapActivity(lastActivity);
+        }
+
+        String format = String.format(Locale.US, "%.4f,%.4f,%.0f,%s", dayOfWeek, timeOfDay, activity, text);
+//        String format = String.format(Locale.US, "%.4f,%.4f,%s", dayOfWeek, timeOfDay, text);
         Log.d(TAG, format);
         return format;
     }
 
     @Override
     public int getClassIndex() {
-        return 2;
+        return 3;
     }
 
     @Override
     public double generateKey(Dataset dataset) {
         double dayOfWeek = dataset.get(0).value(0);
         double timestep = dataset.get(0).value(1);
-        return generateKey(dayOfWeek, timestep);
+        double activity = dataset.get(0).value(2);
+        return generateKey(dayOfWeek, timestep, activity);
     }
 
     @Override
@@ -108,10 +132,31 @@ public class TimeBasedDataMapper implements ClusteringDataMapper {
         cal.setTime(event.getDate());
         double dayOfWeek = TimeBasedDataMapper.getDayOfWeek(cal);
         double timestep = TimeBasedDataMapper.getTimeOfDay(cal);
-        return generateKey(dayOfWeek, timestep);
+        return generateKey(dayOfWeek, timestep, mapActivity(event.getData()));
     }
 
-    private double generateKey(double dayOfWeek, double timestep) {
-        return Math.round(dayOfWeek * 6.0) + timestep;
+    public double mapActivity(String activity) {
+        if (activity == null || activity.isEmpty()) {
+            return 0D;
+        }
+        switch (activity) {
+            case "ON_FOOT":
+                return 1.0;
+            case "WALKING":
+                return 1.0;
+            case "RUNNING":
+                return 1.0;
+            case "ON_BICYCLE":
+                return 1.0;
+            case "IN_VEHICLE":
+                return 1.0;
+            default:
+                return 0.0;
+        }
     }
+
+    private double generateKey(double dayOfWeek, double timestep, double activity) {
+        return activity * 10 + Math.round(dayOfWeek * 6.0) + timestep;
+    }
+
 }

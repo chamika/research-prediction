@@ -18,7 +18,7 @@ public class FileExport {
     private static final String TAG = FileExport.class.getSimpleName();
 
     public static void exportDBtoFile(Context context, String fileName, DataMapper dataMapper) {
-        Cursor cursor = BaseStore.getAllEvents(context);
+        Cursor cursor = BaseStore.getAllEvents(context, "ASC");
         cursor.moveToFirst();
 
         FileOutputStream fos = null;
