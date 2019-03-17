@@ -22,10 +22,7 @@ public class BaseStore {
 
     public static long saveEvent(Context context, int actionType, String eventType, long time,
                                  String... data) {
-        if (dbWritable == null || !dbWritable.isOpen()) {
-            DBHelper mDbHelper = new DBHelper(context);
-            dbWritable = mDbHelper.getWritableDatabase();
-        }
+        initWritableDB(context);
 
         ContentValues values = new ContentValues();
         values.put(EventsStructure.COLUMN_NAME_ACTION_TYPE, actionType);
@@ -49,10 +46,7 @@ public class BaseStore {
     }
 
     public static int savePrediction(Context context, long predictionId, int predictor, int predictionIndex, String eventType, long time, String... data) {
-        if (dbWritable == null || !dbWritable.isOpen()) {
-            DBHelper mDbHelper = new DBHelper(context);
-            dbWritable = mDbHelper.getWritableDatabase();
-        }
+        initWritableDB(context);
 
         ContentValues values = new ContentValues();
         values.put(PredictionsStructure.COLUMN_NAME_PREDICTION_ID, predictionId);
@@ -172,10 +166,7 @@ public class BaseStore {
 //    }
 
     public static Cursor getAllEvents(Context context) {
-        if (dbReadable == null || !dbReadable.isOpen()) {
-            DBHelper mDbHelper = new DBHelper(context);
-            dbReadable = mDbHelper.getReadableDatabase();
-        }
+        initReadableDB(context);
 
         String[] projection = {
                 EventsStructure._ID,
@@ -204,12 +195,59 @@ public class BaseStore {
         );
     }
 
+    public static Cursor getEventsWithTypeAndTime(Context context, String eventType, long timeFrom, long timeTo) {
+        initReadableDB(context);
+
+        String[] projection = {
+                EventsStructure._ID,
+                EventsStructure.COLUMN_NAME_ACTION_TYPE,
+                EventsStructure.COLUMN_NAME_EVENT_TYPE,
+                EventsStructure.COLUMN_NAME_TIME,
+                EventsStructure.COLUMN_NAME_DATA1,
+                EventsStructure.COLUMN_NAME_DATA2,
+                EventsStructure.COLUMN_NAME_DATA3,
+                EventsStructure.COLUMN_NAME_DATA4
+        };
+
+        String selection = EventsStructure.COLUMN_NAME_TIME + " >= ? and " + EventsStructure.COLUMN_NAME_TIME + " <= ? and "
+                + EventsStructure.COLUMN_NAME_EVENT_TYPE + " = ? ";
+        String[] selectionArgs = {String.valueOf(timeFrom), String.valueOf(timeTo), eventType};
+
+        String sortOrder = EventsStructure.COLUMN_NAME_TIME + " DESC";
+
+        return dbReadable.query(
+                EventsStructure.TABLE_NAME_EVENTS,      // The table to query
+                projection,     // The columns to return
+                selection,      // The columns for the WHERE clause
+                selectionArgs,  // The values for the WHERE clause
+                null,           // don't group the rows
+                null,           // don't filter by row groups
+                sortOrder       // The sort order
+        );
+    }
+
+
+
     public static void closeDBs() {
         if (dbReadable != null && dbReadable.isOpen()) {
             dbReadable.close();
         }
         if (dbWritable != null && dbWritable.isOpen()) {
             dbWritable.close();
+        }
+    }
+
+    private static void initReadableDB(Context context) {
+        if (dbReadable == null || !dbReadable.isOpen()) {
+            DBHelper mDbHelper = new DBHelper(context);
+            dbReadable = mDbHelper.getReadableDatabase();
+        }
+    }
+
+    private static void initWritableDB(Context context) {
+        if (dbWritable == null || !dbWritable.isOpen()) {
+            DBHelper mDbHelper = new DBHelper(context);
+            dbWritable = mDbHelper.getWritableDatabase();
         }
     }
 
@@ -228,7 +266,7 @@ public class BaseStore {
         public static final String TABLE_NAME = "predictions";
         public static final String COLUMN_NAME_PREDICTION_ID = "prediction_id";
         public static final String COLUMN_NAME_PREDICTOR = "predictor";
-        public static final String COLUMN_NAME_INDEX = "prediction_index";
+        public static final String COLUMN_NAME_INDEX = "prediction_index";// order of a specific prediction_id
         public static final String COLUMN_NAME_TYPE = "event_type";//SMS, CALL
         public static final String COLUMN_NAME_TIME = "event_time";
         public static final String COLUMN_NAME_DATA1 = "data1";

@@ -8,8 +8,6 @@ import android.widget.ListView;
 
 import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.store.BaseStore;
-import com.chamika.research.smartprediction.store.FileExport;
-import com.chamika.research.smartprediction.util.Config;
 
 import java.lang.ref.WeakReference;
 
@@ -43,7 +41,7 @@ public class DataViewActivity extends AppCompatActivity {
             if (context == null) {
                 return null;
             }
-            FileExport.exportDBtoFile(context, Config.DATA_FILE_NAME);
+//            FileExport.exportDBtoFile(context, Config.DATA_FILE_NAME);
             return null;
         }
 

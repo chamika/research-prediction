@@ -3,6 +3,7 @@ package com.chamika.research.smartprediction.util;
 
 import android.util.Log;
 
+import com.chamika.research.smartprediction.prediction.ClusteringDataMapper;
 import com.chamika.research.smartprediction.prediction.KMeans;
 
 import net.sf.javaml.clustering.Clusterer;
@@ -47,9 +48,9 @@ public class Clustering {
 
     }
 
-    public Dataset[] doCluster(String fileAbsolutePath, int clusterCount, int iterations) throws IOException {
+    public Dataset[] doCluster(String fileAbsolutePath, ClusteringDataMapper dataMapper, int clusterCount, int iterations) throws IOException {
         /* Load a dataset */
-        Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), 2, ",");
+        Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), dataMapper.getClassIndex(), ",");
         /* Create a new instance of the KMeans algorithm, with no options
          * specified. By default this will generate 4 clusters. */
         Log.d(TAG, String.format("clustering started. clusterCount=%d iterations=%d", clusterCount, iterations));

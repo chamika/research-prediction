@@ -1,6 +1,7 @@
 package com.chamika.research.smartprediction.prediction;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -8,12 +9,14 @@ import com.chamika.research.smartprediction.store.BaseStore;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 public class PredictionEngine {
 
     private static final String TAG = PredictionEngine.class.getSimpleName();
+    public static final int EVENT_ACTIVITY_LOOKBACK_MINS = 10;
 
     private static PredictionEngine INSTANCE;
 
@@ -47,7 +50,13 @@ public class PredictionEngine {
         if (event != null) {
             Log.d(TAG, event.toString() + " received.");
         } else {
-            Log.d(TAG, "null event received.");
+            Log.d(TAG, "null event received. Ignore sending to prediction processor");
+            return;
+        }
+
+        Event activityEvent = getActivityEvent(event);
+        if (activityEvent != null) {
+            event.setData(activityEvent.getData());
         }
 
         List<Prediction> predictions = processor.processEvent(event);
@@ -58,7 +67,13 @@ public class PredictionEngine {
         if (event != null) {
             Log.d(TAG, event.toString() + " received.");
         } else {
-            Log.d(TAG, "null event received.");
+            Log.d(TAG, "null event received. Ignore sending to prediction processor");
+            return null;
+        }
+
+        Event activityEvent = getActivityEvent(event);
+        if (activityEvent != null) {
+            event.setData(activityEvent.getData());
         }
 
         List<Prediction> predictions = processor.processEvent(event);
@@ -90,6 +105,23 @@ public class PredictionEngine {
                 }
             }
         }
+    }
+
+    public Event getActivityEvent(Event event) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(event.getDate());
+        cal.add(Calendar.MINUTE, -EVENT_ACTIVITY_LOOKBACK_MINS);
+
+        long timeFrom = cal.getTimeInMillis();
+        long timeTo = event.getDate().getTime();
+
+        Cursor cursor = BaseStore.getEventsWithTypeAndTime(context, "ACT", timeFrom, timeTo);
+        if (cursor.moveToFirst()) {
+            Event activityEvent = new Event(new Date(cursor.getLong(cursor.getColumnIndex(BaseStore.EventsStructure.COLUMN_NAME_TIME))));
+//            activityEvent.setData(cursor);
+            return activityEvent;
+        }
+        return null;
     }
 
     private static class SavePredictionTask extends AsyncTask<PredictionSave, Integer, Boolean> {

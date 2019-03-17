@@ -37,6 +37,7 @@ public class PredictionProcessor {
     private int clusterCount;
     private NavigableMap<Double, List<Dataset>> clusteredData = new TreeMap<>();
     private InitializationListener initializationListener;
+    private ClusteringDataMapper dataMapper = new TimeBasedDataMapper();
 
     public PredictionProcessor(Context context) {
         this.context = context;
@@ -139,8 +140,8 @@ public class PredictionProcessor {
     private double generateKey(Event event) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(event.getDate());
-        double dayOfWeek = FileExport.getDayOfWeek(cal);
-        double timestep = FileExport.getTimeOfDay(cal);
+        double dayOfWeek = TimeBasedDataMapper.getDayOfWeek(cal);
+        double timestep = TimeBasedDataMapper.getTimeOfDay(cal);
         return generateKey(dayOfWeek, timestep);
     }
 
@@ -174,13 +175,13 @@ public class PredictionProcessor {
                 Context context = contextRef.get();
                 String dataFileName = Config.DATA_FILE_NAME;
                 if (context != null) {
-                    FileExport.exportDBtoFile(context, dataFileName);
+                    FileExport.exportDBtoFile(context, dataFileName, dataMapper);
                 }
                 context = contextRef.get();
                 if (context != null) {
                     String path = new File(context.getFilesDir(), Config.DATA_FILE_NAME).getAbsolutePath();
                     startTime = System.currentTimeMillis();
-                    return new Clustering().doCluster(path, clusterCount, CLUSTER_ITERATIONS);
+                    return new Clustering().doCluster(path, dataMapper, clusterCount, CLUSTER_ITERATIONS);
                 }
                 return null;
             } catch (IOException e) {
