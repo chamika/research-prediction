@@ -23,7 +23,7 @@ public class DataViewActivity extends AppCompatActivity {
 
         // Find ListView to populate
         ListView listView = (ListView) findViewById(R.id.listview);
-        DataCursorAdapter dataCursorAdapter = new DataCursorAdapter(this, BaseStore.getDataDesc(this));
+        DataCursorAdapter dataCursorAdapter = new DataCursorAdapter(this, BaseStore.getAllEvents(this));
         listView.setAdapter(dataCursorAdapter);
 
         new DataExportTask(this).execute();

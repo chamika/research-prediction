@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class PredictionProcessor {
+    private static int PREDICTION_PROCESSOR_ID = 1;
+
     //    public static final int DEFAULT_CLUSTER_COUNT = 48;
     public static final int DEFAULT_CLUSTER_COUNT = 48 * 7; // approximately 30 mins predictions
     public static final int CLUSTER_ITERATIONS = 1000;
@@ -122,6 +124,10 @@ public class PredictionProcessor {
 
     public boolean isInitialized() {
         return initialized;
+    }
+
+    public int getPredictionProcessorId() {
+        return PREDICTION_PROCESSOR_ID;
     }
 
     private double generateKey(Dataset dataset) {

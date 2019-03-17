@@ -39,7 +39,7 @@ public class DataCursorAdapter extends CursorAdapter {
         TextView textTime = (TextView) view.findViewById(R.id.text_time);
         TextView textData = (TextView) view.findViewById(R.id.text_data);
 
-        int actionType = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_ACTION_TYPE));
+        int actionType = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_ACTION_TYPE));
         String action = "N/A";
         if (actionType == 1) {
             action = "ACT";
@@ -49,14 +49,14 @@ public class DataCursorAdapter extends CursorAdapter {
             action = "ACT/EVT";
         }
         textActionType.setText(action);
-        textEventType.setText(cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_EVENT_TYPE)));
-        long timeInMilis = cursor.getLong(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_TIME));
+        textEventType.setText(cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_EVENT_TYPE)));
+        long timeInMilis = cursor.getLong(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_TIME));
         Date date = new Date(timeInMilis);
         textTime.setText((sdf.format(date)));
-        String data1 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA1));
-        String data2 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA2));
-        String data3 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA3));
-        String data4 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA4));
+        String data1 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA1));
+        String data2 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA2));
+        String data3 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA3));
+        String data4 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA4));
 
         textData.setText(String.format("%s %s %s %s", data1, data2, data3, data4));
     }

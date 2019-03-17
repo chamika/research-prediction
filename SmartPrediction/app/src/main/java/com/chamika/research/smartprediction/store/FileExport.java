@@ -24,7 +24,7 @@ public class FileExport {
 
     public static void exportDBtoFile(Context context, String fileName) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss", Locale.US);
-        Cursor cursor = BaseStore.getDataDesc(context);
+        Cursor cursor = BaseStore.getAllEvents(context);
         cursor.moveToFirst();
 
         FileOutputStream fos = null;
@@ -38,8 +38,8 @@ public class FileExport {
             while (cursor.moveToNext()) {
                 double dayOfWeek, timeOfDay, event, d1, d2, d3;
 
-                long id = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.Structure._ID));
-                int actionType = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_ACTION_TYPE));
+                long id = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure._ID));
+                int actionType = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_ACTION_TYPE));
                 String action = "N/A";
                 if (actionType == 1) {
                     action = "ACT";
@@ -48,15 +48,15 @@ public class FileExport {
                 } else if (actionType == 3) {
                     action = "ACT/EVT";
                 }
-                String eventType = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_EVENT_TYPE));
+                String eventType = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_EVENT_TYPE));
 
-                long timeInMilis = cursor.getLong(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_TIME));
+                long timeInMilis = cursor.getLong(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_TIME));
                 Calendar cal = Calendar.getInstance();
                 cal.setTimeInMillis(timeInMilis);
-                String data1 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA1));
-                String data2 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA2));
-                String data3 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA3));
-                String data4 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.Structure.COLUMN_NAME_DATA4));
+                String data1 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA1));
+                String data2 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA2));
+                String data3 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA3));
+                String data4 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA4));
 
                 dayOfWeek = getDayOfWeek(cal);
                 timeOfDay = getTimeOfDay(cal);
