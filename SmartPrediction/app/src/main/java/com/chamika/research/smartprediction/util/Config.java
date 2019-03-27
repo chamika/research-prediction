@@ -17,5 +17,6 @@ public class Config {
             DetectedActivityFence.RUNNING};
     public static int DATA_COLLECTION_REFRESH_INTERVAL = 900000;
     public static int DATA_UPLOAD_INTERVAL = 21600000;
+    public static int PREDICTION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000; //24 hours
 
 }

@@ -33,6 +33,7 @@ import com.chamika.research.smartprediction.ui.hover.MultiSectionHoverMenu;
 import com.chamika.research.smartprediction.ui.hover.adapters.OnItemSelectListener;
 import com.chamika.research.smartprediction.util.Config;
 
+import java.util.Calendar;
 import java.util.List;
 
 import io.mattcarroll.hover.HoverMenu;
@@ -48,6 +49,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     public static final String INTENT_EXTRA_SCREEN_ON = "screenOn";
     public static final String INTENT_EXTRA_SCREEN_EVENT = "event";
     public static final String INTENT_EXTRA_STOP = "stop";
+    public static final String INTENT_EXTRA_REFRESH_PREDICTIONS = "refresh_predictions";
     private static final String TAG = PredictionService.class.getSimpleName();
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
     private PredictionEngine predictionEngine;
@@ -106,8 +108,8 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("HoverMenuService", "onStartCommand() ");
         if (intent != null && intent.hasExtra(INTENT_EXTRA_STOP)) {
-            stopForeground(true);
-            stopSelf();
+            stopPredictionService();
+            return Service.START_NOT_STICKY;
         }
         if (!OverlayPermission.hasRuntimePermissionToDrawOverlay(this.getApplicationContext())) {
             Log.e("HoverMenuService", "Cannot display a Hover menu in a Window without the draw overlay permission.");
@@ -116,6 +118,12 @@ public class PredictionService extends Service implements OnItemSelectListener<P
         } else {
             if (!this.mIsRunning || intent == null) {
                 //initial service start or starting after kill
+                if (intent != null && intent.hasExtra(INTENT_EXTRA_REFRESH_PREDICTIONS)) {
+                    //refresh call should be skipped
+                    stopPredictionService();
+                    return Service.START_NOT_STICKY;
+                }
+
                 initPredictionEngine();
                 this.initHoverMenu();
                 this.mIsRunning = true;
@@ -124,6 +132,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
                 }
                 startDataCollection();
                 scheduleDatabaseUpload(this);
+                schedulePredictionEngineRefresh(this);
             } else {
                 if (intent.hasExtra(INTENT_EXTRA_SCREEN_ON)) {
                     boolean screenOn = intent.getBooleanExtra(INTENT_EXTRA_SCREEN_ON, false);
@@ -140,12 +149,19 @@ public class PredictionService extends Service implements OnItemSelectListener<P
                     if (event != null) {
                         showPredictions(predictionEngine.addEventSynchronous(event));
                     }
+                } else if (intent.hasExtra(INTENT_EXTRA_REFRESH_PREDICTIONS)) {
+                    predictionEngine.refresh();
                 }
             }
             registerScreenState();
 
             return Service.START_STICKY;
         }
+    }
+
+    private void stopPredictionService() {
+        stopForeground(true);
+        stopSelf();
     }
 
     public void onDestroy() {
@@ -197,6 +213,27 @@ public class PredictionService extends Service implements OnItemSelectListener<P
             int interval = Config.DATA_UPLOAD_INTERVAL;
             manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, interval, pendingIntent);
             Log.d(TAG, "Scheduled uploading data");
+        }
+    }
+
+    private void schedulePredictionEngineRefresh(Context context) {
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager != null) {
+            Intent alarmIntent = new Intent(context, PredictionService.class);
+            alarmIntent.putExtra(INTENT_EXTRA_REFRESH_PREDICTIONS, true);
+            PendingIntent pendingIntent = PendingIntent.getService(context, 0, alarmIntent, 0);
+            int interval = Config.PREDICTION_REFRESH_INTERVAL;
+
+            //trigger at 0100AM
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR, 1);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.add(Calendar.DATE, 1);//next date
+            long startTime = cal.getTimeInMillis() - System.currentTimeMillis();
+
+            manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, startTime, interval, pendingIntent);
+            Log.d(TAG, "Scheduled prediction refresh");
         }
     }
 

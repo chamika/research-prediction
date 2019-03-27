@@ -86,6 +86,11 @@ public class PredictionEngine {
         return predictions;
     }
 
+    public void refresh() {
+        Log.d(TAG, "Refreshing predictions");
+        processor.init();
+    }
+
     private void notifyPredictions(List<Prediction> predictions) {
         Log.d(TAG, "Prediction count=" + predictions.size());
         if (!predictions.isEmpty()) {

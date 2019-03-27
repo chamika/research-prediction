@@ -52,6 +52,7 @@ public class PredictionProcessor {
     }
 
     public void init() {
+        initialized = false;
         new ClusteringTask(context).execute();
     }
 
