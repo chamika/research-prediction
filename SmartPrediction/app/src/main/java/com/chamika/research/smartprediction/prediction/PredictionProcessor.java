@@ -107,23 +107,31 @@ public class PredictionProcessor {
                             @Override
                             public int compare(Map.Entry<String, Integer> e1, Map.Entry<String, Integer> e2) {
 //                                return e1.getValue().compareTo(e2.getValue());
-                                return e2.getValue().compareTo(e1.getValue());//reverse order
+                                return e2.getValue().compareTo(e1.getValue());//descending order
                             }
                         }
                 );
 
                 sortedEntriesByValue.addAll(map.entrySet());
 
-
-                //TODO implement MAX_PREDICTION based on prediction type
+                Map<String, Integer> countMap = new HashMap<>();
                 int count = 1;
                 for (Map.Entry<String, Integer> mapEntry : sortedEntriesByValue) {
-                    if (count > MAX_PREDICTIONS) {
-                        break;
-                    }
                     String event = mapEntry.getKey();
                     String[] split = event.split("\\|");
                     String eventType = split[0];
+
+                    Integer typeCount = countMap.get(eventType);
+                    if (typeCount == null) {
+                        typeCount = 1;
+                    } else {
+                        typeCount++;
+                    }
+                    countMap.put(event, typeCount);
+                    if (typeCount > MAX_PREDICTIONS) {
+                        continue;
+                    }
+
                     Prediction prediction = null;
                     if (EventType.ACT.text().equals(eventType)) {
                         prediction = new ActivityPrediction(String.valueOf(count++), split[1]);
@@ -131,8 +139,7 @@ public class PredictionProcessor {
                         prediction = new CallPrediction(String.valueOf(count++), split[1]);
                     } else if (EventType.SMS.text().equals(eventType)) {
                         prediction = new MessagePrediction(String.valueOf(count++), split[1]);
-                    } else if (EventType.
-                            APP.text().equals(eventType)) {
+                    } else if (EventType.APP.text().equals(eventType)) {
                         prediction = new AppPrediction(String.valueOf(count++), split[1]);
                     }
 
