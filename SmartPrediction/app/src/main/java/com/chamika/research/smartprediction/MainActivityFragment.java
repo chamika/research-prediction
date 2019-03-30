@@ -18,8 +18,8 @@ import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.chamika.research.smartprediction.prediction.Event;
@@ -32,8 +32,6 @@ import com.chamika.research.smartprediction.ui.results.ResultsActivity;
 import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.Constant;
 import com.chamika.research.smartprediction.util.SettingsUtil;
-
-import java.util.Date;
 
 import io.mattcarroll.hover.overlay.OverlayPermission;
 
@@ -58,7 +56,7 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_main_new, container, false);
 
         Context context = this.getContext();
         Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
@@ -70,33 +68,33 @@ public class MainActivityFragment extends Fragment {
         initCheckBoxNormalPermission(rootView, R.id.check_activities, Constant.PREF_ACTIVITY);
         initSystemUsagePermission(rootView, R.id.check_apps, Constant.PREF_APP_USAGE);
 
-        rootView.findViewById(R.id.btn_start).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                start(v);
-            }
-        });
+//        rootView.findViewById(R.id.btn_start).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                start(v);
+//            }
+//        });
 
-        rootView.findViewById(R.id.btn_stop).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cancel(v);
-            }
-        });
+//        rootView.findViewById(R.id.btn_stop).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                cancel(v);
+//            }
+//        });
 
-        rootView.findViewById(R.id.btn_view).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                view(v);
-            }
-        });
+//        rootView.findViewById(R.id.btn_view).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                view(v);
+//            }
+//        });
 
-        rootView.findViewById(R.id.btn_cluster).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cluster(v);
-            }
-        });
+//        rootView.findViewById(R.id.btn_cluster).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                cluster(v);
+//            }
+//        });
 
         rootView.findViewById(R.id.btn_prediction).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,12 +103,12 @@ public class MainActivityFragment extends Fragment {
             }
         });
 
-        rootView.findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendEvent(new Event(new Date()));
-            }
-        });
+//        rootView.findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                sendEvent(new Event(new Date()));
+//            }
+//        });
 
         return rootView;
     }
@@ -125,7 +123,7 @@ public class MainActivityFragment extends Fragment {
 
     private void initCheckBoxDangerousPermission(View rootView, int checkboxResId, final String permission, final int permissionRequest, final String settingsPrefKey) {
         final Context context = this.getContext();
-        CheckBox checkBox = (CheckBox) rootView.findViewById(checkboxResId);
+        Switch checkBox = rootView.findViewById(checkboxResId);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -147,7 +145,7 @@ public class MainActivityFragment extends Fragment {
 
     private void initCheckBoxNormalPermission(View rootView, int checkboxResId, final String settingsPrefKey) {
         final Context context = this.getContext();
-        CheckBox checkBox = (CheckBox) rootView.findViewById(checkboxResId);
+        Switch checkBox = rootView.findViewById(checkboxResId);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -159,7 +157,7 @@ public class MainActivityFragment extends Fragment {
 
     private void initSystemUsagePermission(View rootView, int checkboxResId, final String settingsPrefKey) {
         final Context context = this.getContext();
-        final CheckBox checkBox = (CheckBox) rootView.findViewById(checkboxResId);
+        final Switch checkBox = rootView.findViewById(checkboxResId);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -280,7 +278,7 @@ public class MainActivityFragment extends Fragment {
             }
         }
         if (setting != null) {
-            ((CheckBox) getView().findViewById(resId)).setChecked(granted);
+            ((Switch) getView().findViewById(resId)).setChecked(granted);
             SettingsUtil.setBooleanPref(this.getContext(), setting, granted);
         }
     }
