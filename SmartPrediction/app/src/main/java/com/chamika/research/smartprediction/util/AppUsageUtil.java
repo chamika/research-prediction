@@ -1,14 +1,14 @@
 package com.chamika.research.smartprediction.util;
 
-import android.app.usage.UsageStats;
+import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.util.Log;
 
 import com.chamika.research.smartprediction.store.BaseStore;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * Created by chamika on 3/16/17.
@@ -26,6 +26,10 @@ public class AppUsageUtil {
         }
 
         UsageStatsManager usageStatsManager = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
+        if (usageStatsManager == null) {
+            Log.d(TAG, "App Usage sync failed. UsageStatsManager not found");
+            return;
+        }
 
         Calendar cal = Calendar.getInstance();
         long time = SettingsUtil.getTime(context, APP);
@@ -36,24 +40,70 @@ public class AppUsageUtil {
         }
 
         long syncTime = System.currentTimeMillis();
-        List<UsageStats> queryUsageStats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, cal.getTimeInMillis(),
-                syncTime);
 
+        UsageEvents usageEvents = usageStatsManager.queryEvents(cal.getTimeInMillis(), syncTime);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         int count = 0;
-        if (queryUsageStats != null && !queryUsageStats.isEmpty()) {
-            for (UsageStats stat : queryUsageStats) {
-                if (cal.getTimeInMillis() < stat.getFirstTimeStamp()) {
-                    Log.d(TAG, "APP:" + stat.getPackageName());
-                    if (stat.getTotalTimeInForeground() > 0) {
-                        int actionType = 1;
-                        BaseStore.saveEvent(context, actionType, APP, stat.getLastTimeUsed(), stat.getPackageName(), String.valueOf(stat.getTotalTimeInForeground()));
-                        count++;
-                    }
+        int countAll = 0;
+        while (usageEvents.hasNextEvent()) {
+            countAll++;
+            UsageEvents.Event event = new UsageEvents.Event();
+            usageEvents.getNextEvent(event);
+            if (event.getEventType() != UsageEvents.Event.MOVE_TO_BACKGROUND) {
+                boolean hasLauncher = context.getPackageManager().getLaunchIntentForPackage(event.getPackageName()) != null;
+                if (hasLauncher) {
+//                    Log.d(TAG, "App Event:" + event.getPackageName() + " " + getEventType(event.getEventType()) + " " + sdf.format(new Date(event.getTimeStamp())));
+                    BaseStore.saveEvent(context, 1, APP, event.getTimeStamp(), event.getPackageName(), null);
+                    count++;
                 }
             }
-            SettingsUtil.setTime(context, APP, syncTime);
         }
+        SettingsUtil.setTime(context, APP, syncTime);
 
-        Log.d(TAG, "App usage  sync completed. " + queryUsageStats.size() + " entries found. " + count + " new entries added");
+//        List<UsageStats> queryUsageStats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, cal.getTimeInMillis(),
+//                syncTime);
+//        int count = 0;
+//        if (queryUsageStats != null && !queryUsageStats.isEmpty()) {
+//            for (UsageStats stat : queryUsageStats) {
+//                if (cal.getTimeInMillis() < stat.getFirstTimeStamp()) {
+//                    Log.d(TAG, "APP:" + stat.getPackageName());
+//                    if (stat.getTotalTimeInForeground() > 0) {
+//                        int actionType = 1;
+//                        BaseStore.saveEvent(context, actionType, APP, stat.getLastTimeUsed(), stat.getPackageName(), String.valueOf(stat.getTotalTimeInForeground()));
+//                        count++;
+//                    }
+//                }
+//            }
+//            SettingsUtil.setTime(context, APP, syncTime);
+//        }
+
+        Log.d(TAG, "App usage  sync completed. " + countAll + " entries found. " + count + " new entries added");
+    }
+
+    private static String getEventType(int type) {
+        switch (type) {
+            case 0:
+                return "NONE";
+            case 1:
+                return "MOVE_TO_FOREGROUND";
+            case 2:
+                return "MOVE_TO_BACKGROUND";
+            case 3:
+                return "END_OF_DAY";
+            case 4:
+                return "CONTINUE_PREVIOUS_DAY";
+            case 5:
+                return "CONFIGURATION_CHANGE";
+            case 6:
+                return "SYSTEM_INTERACTION";
+            case 7:
+                return "USER_INTERACTION";
+            case 8:
+                return "SHORTCUT_INVOCATION";
+            case 9:
+                return "CHOOSER_ACTION";
+            default:
+                return "UNKNOWN(" + String.valueOf(type) + ")";
+        }
     }
 }
