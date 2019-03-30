@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">Smart Suggestions</string>
-    <string name="action_settings">Settings</string>
 
     <string name="input_file">Input File</string>
     <string name="clustering_time">Clustering time: #s</string>
     <string name="cluster">Cluster</string>
+    <string name="menu_suggest_now">Suggest Now</string>
+    <string name="menu_cluster_test">Cluster Test</string>
+    <string name="menu_view_data">View Data</string>
 </resources>

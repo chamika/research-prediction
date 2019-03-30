@@ -12,10 +12,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
@@ -32,6 +36,8 @@ import com.chamika.research.smartprediction.ui.results.ResultsActivity;
 import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.Constant;
 import com.chamika.research.smartprediction.util.SettingsUtil;
+
+import java.util.Date;
 
 import io.mattcarroll.hover.overlay.OverlayPermission;
 
@@ -52,6 +58,13 @@ public class MainActivityFragment extends Fragment {
 
     public MainActivityFragment() {
     }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -111,6 +124,24 @@ public class MainActivityFragment extends Fragment {
 //        });
 
         return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_suggest) {
+            sendEvent(new Event(new Date()));
+        } else if (id == R.id.action_cluster) {
+            cluster();
+        } else if (id == R.id.action_view) {
+            view();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void scheduleDatabaseUpload(Context context) {
@@ -186,7 +217,7 @@ public class MainActivityFragment extends Fragment {
         checkBox.setChecked(SettingsUtil.getBooleanPref(context, settingsPrefKey));
     }
 
-    public void start(View v) {
+    public void start() {
         //SMS,CALL
         Context context = this.getContext();
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -200,7 +231,7 @@ public class MainActivityFragment extends Fragment {
         Toast.makeText(context, "Started collecting data", Toast.LENGTH_SHORT).show();
     }
 
-    public void cancel(View v) {
+    public void cancel() {
         Context context = this.getContext();
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         manager.cancel(pendingIntent);
@@ -209,12 +240,12 @@ public class MainActivityFragment extends Fragment {
         Toast.makeText(context, "Stopped collecting data", Toast.LENGTH_SHORT).show();
     }
 
-    public void view(View v) {
+    public void view() {
         this.getActivity().startActivity(new Intent(this.getContext(), DataViewActivity.class));
     }
 
 
-    private void cluster(View v) {
+    private void cluster() {
         this.getActivity().startActivity(new Intent(this.getContext(), ResultsActivity.class));
     }
 
