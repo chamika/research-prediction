@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -330,11 +331,17 @@ public class PredictionService extends Service implements OnItemSelectListener<P
             }
         } else if (Prediction.Type.SMS == item.getType()) {
             MessagePrediction messagePrediction = (MessagePrediction) item;
-            //TODO prompt to send SMS to the given number
+            //prompt to send SMS to the given number
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", messagePrediction.getNumber(), null));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
             Log.d(TAG, "Prompt to send SMS to " + messagePrediction.getNumber());
         } else if (Prediction.Type.CALL == item.getType()) {
             CallPrediction callPrediction = (CallPrediction) item;
-            //TODO prompt to call to the given number
+            //prompt to call to the given number
+            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", callPrediction.getNumber(), null));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
             Log.d(TAG, "Prompt to call to " + callPrediction.getNumber());
         }
     }

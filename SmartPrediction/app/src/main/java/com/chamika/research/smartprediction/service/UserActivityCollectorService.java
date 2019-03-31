@@ -110,7 +110,11 @@ public class UserActivityCollectorService extends Service {
                 e.printStackTrace();
             }
         }
-        unregisterReceiver(fenceReceiver);
+        try {
+            unregisterReceiver(fenceReceiver);
+        } catch (Exception e) {
+            Log.e(TAG, "Error in unregistering fence Receiver", e);
+        }
         Log.d(TAG, "activity detection background service stopped");
     }
 
