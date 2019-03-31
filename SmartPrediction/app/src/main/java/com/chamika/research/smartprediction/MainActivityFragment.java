@@ -22,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -55,6 +56,7 @@ public class MainActivityFragment extends Fragment {
     private PendingIntent pendingIntent;
 
     private boolean serviceRunning = false;
+    private Button btnStart;
 
     public MainActivityFragment() {
     }
@@ -109,7 +111,8 @@ public class MainActivityFragment extends Fragment {
 //            }
 //        });
 
-        rootView.findViewById(R.id.btn_prediction).setOnClickListener(new View.OnClickListener() {
+        btnStart = rootView.findViewById(R.id.btn_prediction);
+        btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startPrediction(v);
@@ -260,10 +263,19 @@ public class MainActivityFragment extends Fragment {
                 }
                 serviceRunning = !serviceRunning;
                 startHoverService(intent);
+                updateUI();
             } else {
                 Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION", Uri.parse("package:" + context.getPackageName()));
                 startActivityForResult(intent, REQUEST_CODE_HOVER_PERMISSION);
             }
+        }
+    }
+
+    private void updateUI() {
+        if (serviceRunning) {
+            btnStart.setText(R.string.button_stop);
+        } else {
+            btnStart.setText(R.string.button_start);
         }
     }
 

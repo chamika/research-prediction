@@ -4,11 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -62,17 +62,19 @@ public class MultiSectionHoverMenu extends HoverMenu {
                 case APP: {
                     List<AppPrediction> predictionList = (List<AppPrediction>) (List<?>) entry.getValue();
                     prepareAppPredictions(predictionList);
-                    AppPrediction appPrediction = (AppPrediction) entry.getValue().get(0);
+                    if (!predictionList.isEmpty()) {
+                        AppPrediction appPrediction = (AppPrediction) entry.getValue().get(0);
 
-                    mSections.add(
-                            new Section(
-                                    new SectionId(appPrediction.getId()),
-                                    createAppIconView(appPrediction),
-                                    createAppScreen(mContext, predictionList)
+                        mSections.add(
+                                new Section(
+                                        new SectionId(appPrediction.getPackageName()),
+                                        createAppIconView(appPrediction),
+                                        createAppScreen(mContext, predictionList)
 
-                            )
-                    );
-                    break;
+                                )
+                        );
+                        break;
+                    }
                 }
 
                 case SMS: {
@@ -191,19 +193,17 @@ public class MultiSectionHoverMenu extends HoverMenu {
     }
 
     private View createMessageIcon() {
-        ImageView imageView = new ImageView(mContext);
+        View parent = LayoutInflater.from(mContext).inflate(R.layout.hover_icon, null, false);
+        ImageView imageView = parent.findViewById(R.id.icon);
         imageView.setImageResource(R.drawable.ic_sms_prediction);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        imageView.setBackgroundColor(Color.BLUE);
-        return imageView;
+        return parent;
     }
 
     private View createCallIcon() {
-        ImageView imageView = new ImageView(mContext);
+        View parent = LayoutInflater.from(mContext).inflate(R.layout.hover_icon, null, false);
+        ImageView imageView = parent.findViewById(R.id.icon);
         imageView.setImageResource(R.drawable.ic_call_prediction);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        imageView.setBackgroundColor(Color.BLUE);
-        return imageView;
+        return parent;
     }
 
 
