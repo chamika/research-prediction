@@ -60,6 +60,13 @@ public class PredictionProcessor {
         List<Prediction> predictions = new ArrayList<>();
         if (!initialized) {
             Log.d(TAG, "Not initialized");
+            //TODO remove after testing
+            predictions.add(new AppPrediction("1", "com.facebook.orca"));
+            predictions.add(new AppPrediction("2", "com.chamika.screenoff"));
+            predictions.add(new AppPrediction("3", "com.whatsapp"));
+            predictions.add(new CallPrediction("4", "3ea0ea2f"));
+            predictions.add(new CallPrediction("5", "3ea0ea2f"));
+            predictions.add(new MessagePrediction("6", "3ea0ea2f"));
             return predictions;
         }
         //TODO implement

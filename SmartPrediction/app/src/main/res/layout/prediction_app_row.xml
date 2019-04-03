@@ -7,20 +7,22 @@
 
     <ImageView
         android:id="@+id/image"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:layout_alignParentLeft="true"
         tools:src="@mipmap/ic_launcher" />
 
 
     <TextView
         android:id="@+id/title"
+        style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_margin="8dp"
         android:layout_toRightOf="@id/image"
-        android:textSize="18sp"
+        android:textColor="#000000"
+        android:textStyle="normal"
         tools:text="Smart Prediciton" />
 
 </RelativeLayout>

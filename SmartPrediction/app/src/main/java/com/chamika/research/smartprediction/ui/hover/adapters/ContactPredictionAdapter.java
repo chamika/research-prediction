@@ -54,8 +54,16 @@ public class ContactPredictionAdapter extends RecyclerView.Adapter<ContactPredic
         }
         holder.txtTitle.setText(contactPrediction.getName());
         if (contactPrediction.getUri() == null) {
-            holder.imgIcon.setImageResource(R.drawable.ic_call_prediction);
+            holder.imgIcon.setPadding(8, 8, 8, 8);
+            holder.imgIcon.setBackgroundResource(R.drawable.hover_icon_bg);
+            if (contactPrediction.getType() == Prediction.Type.CALL) {
+                holder.imgIcon.setImageResource(R.drawable.ic_call_prediction);
+            } else if (contactPrediction.getType() == Prediction.Type.SMS) {
+                holder.imgIcon.setImageResource(R.drawable.ic_sms_prediction);
+            }
+
         } else {
+            holder.imgIcon.setPadding(0, 0, 0, 0);
             try {
                 holder.imgIcon.setImageURI(Uri.parse(contactPrediction.getUri()));
             } catch (Exception e) {
