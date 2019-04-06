@@ -111,7 +111,9 @@ public class UserActivityCollectorService extends Service {
             }
         }
         try {
-            unregisterReceiver(fenceReceiver);
+            if (started) {
+                unregisterReceiver(fenceReceiver);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error in unregistering fence Receiver", e);
         }

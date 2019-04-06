@@ -60,13 +60,17 @@ public class PredictionProcessor {
         List<Prediction> predictions = new ArrayList<>();
         if (!initialized) {
             Log.d(TAG, "Not initialized");
-            //TODO remove after testing
-            predictions.add(new AppPrediction("1", "com.facebook.orca"));
-            predictions.add(new AppPrediction("2", "com.chamika.screenoff"));
-            predictions.add(new AppPrediction("3", "com.whatsapp"));
-            predictions.add(new CallPrediction("4", "3ea0ea2f"));
-            predictions.add(new CallPrediction("5", "3ea0ea2f"));
-            predictions.add(new MessagePrediction("6", "3ea0ea2f"));
+//            long l = System.currentTimeMillis();
+//            if (l % 3 == 0) {
+//                predictions.add(new AppPrediction("1", "com.facebook.orca"));
+//            } else if (l % 3 == 1) {
+//                predictions.add(new AppPrediction("1", "com.chamika.screenoff"));
+//            } else {
+//                predictions.add(new AppPrediction("1", "com.whatsapp"));
+//            }
+//            predictions.add(new CallPrediction("4", "3ea0ea2f"));
+//            predictions.add(new CallPrediction("5", "3ea0ea2f"));
+//            predictions.add(new MessagePrediction("6", "3ea0ea2f"));
             return predictions;
         }
         //TODO implement
@@ -135,7 +139,7 @@ public class PredictionProcessor {
                     } else {
                         typeCount++;
                     }
-                    countMap.put(event, typeCount);
+                    countMap.put(eventType, typeCount);
                     if (typeCount > MAX_PREDICTIONS) {
                         continue;
                     }

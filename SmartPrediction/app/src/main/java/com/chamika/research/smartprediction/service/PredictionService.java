@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.prediction.AppPrediction;
 import com.chamika.research.smartprediction.prediction.CallPrediction;
 import com.chamika.research.smartprediction.prediction.Event;
@@ -37,7 +36,6 @@ import com.chamika.research.smartprediction.util.Config;
 import java.util.Calendar;
 import java.util.List;
 
-import io.mattcarroll.hover.HoverMenu;
 import io.mattcarroll.hover.HoverView;
 import io.mattcarroll.hover.OnExitListener;
 import io.mattcarroll.hover.SideDock;
@@ -78,9 +76,9 @@ public class PredictionService extends Service implements OnItemSelectListener<P
             int notificationId = this.getForegroundNotificationId();
             this.startForeground(notificationId, foregroundNotification);
         } else {
+            final String NOTIFICATION_CHANNEL_ID = "com.chamika.research.smartprediction.service.running";
             Notification notification;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String NOTIFICATION_CHANNEL_ID = "com.chamika.research.smartprediction.service.running";
                 String channelName = "Service Status";
                 NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
                 chan.setLightColor(Color.BLUE);
@@ -88,20 +86,20 @@ public class PredictionService extends Service implements OnItemSelectListener<P
                 NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 assert manager != null;
                 manager.createNotificationChannel(chan);
-
                 Notification.Builder builder = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
-                        .setContentTitle(getString(R.string.app_name))
-                        .setContentText("Smart Predictions Running...")
+//                        .setContentTitle(getString(R.string.app_name))
+//                        .setContentText("Smart Predictions Running...")
                         .setAutoCancel(true);
                 notification = builder.build();
             } else {
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                        .setContentTitle(getString(R.string.app_name))
-                        .setContentText("Smart Predictions Running...")
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+//                    .setContentTitle(getString(R.string.app_name) + " Running...")
+//                    .setContentText("Smart Predictions Running...")
+                        .setPriority(NotificationCompat.PRIORITY_LOW)
                         .setAutoCancel(true);
                 notification = builder.build();
             }
+
             this.startForeground(1, notification);
         }
     }
@@ -231,9 +229,8 @@ public class PredictionService extends Service implements OnItemSelectListener<P
             cal.set(Calendar.MINUTE, 0);
             cal.set(Calendar.SECOND, 0);
             cal.add(Calendar.DATE, 1);//next date
-            long startTime = cal.getTimeInMillis() - System.currentTimeMillis();
 
-            manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, startTime, interval, pendingIntent);
+            manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), interval, pendingIntent);
             Log.d(TAG, "Scheduled prediction refresh");
         }
     }
@@ -300,11 +297,13 @@ public class PredictionService extends Service implements OnItemSelectListener<P
 
     private void showPredictions(List<Prediction> predictions) {
         if (predictions != null && !predictions.isEmpty()) {
-            HoverMenu menu = new MultiSectionHoverMenu(this, predictions, this);
+            MultiSectionHoverMenu menu = new MultiSectionHoverMenu(this, this);
+            menu.updateSections(predictions);
             if (menu.getSectionCount() > 0) {
-                HoverView hoverView = getHoverView();
-                hoverView.setMenu(menu);
-                hoverView.collapse();
+                getHoverView().removeFromWindow();
+                initHoverMenu();
+                getHoverView().setMenu(menu);
+                getHoverView().collapse();
             }
         }
     }

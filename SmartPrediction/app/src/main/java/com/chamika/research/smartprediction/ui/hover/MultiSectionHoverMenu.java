@@ -38,14 +38,16 @@ public class MultiSectionHoverMenu extends HoverMenu {
     private static final String TAG = MultiSectionHoverMenu.class.getSimpleName();
 
     private final Context mContext;
-    private final List<Section> mSections;
+    private final List<Section> mSections = new ArrayList<>();
     private OnItemSelectListener<Prediction> onItemSelectListener;
 
-    public MultiSectionHoverMenu(@NonNull Context context, List<Prediction> predictions, OnItemSelectListener<Prediction> onItemSelectListener) {
+    public MultiSectionHoverMenu(@NonNull Context context, OnItemSelectListener<Prediction> onItemSelectListener) {
         mContext = context.getApplicationContext();
         this.onItemSelectListener = onItemSelectListener;
+    }
 
-        mSections = new ArrayList<>();
+    public void updateSections(List<Prediction> predictions) {
+        mSections.clear();
 
         Map<Prediction.Type, List<Prediction>> map = new HashMap<>();
         for (Prediction prediction : predictions) {
