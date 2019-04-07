@@ -115,7 +115,7 @@ public class MultiSectionHoverMenu extends HoverMenu {
     }
 
     private void prepareContactPredictions(List<? extends ContactPrediction> predictionList) {
-        Map<String, com.chamika.research.smartprediction.ui.hover.Contact> numberHashes = new HashMap<>();
+        Map<String, com.chamika.research.smartprediction.ui.hover.Contact> numbersMap = new HashMap<>();
 
         ContactsProvider provider = new ContactsProvider(mContext);
         Data<Contact> contacts = provider.getContacts();
@@ -123,7 +123,7 @@ public class MultiSectionHoverMenu extends HoverMenu {
             List<Contact> list = contacts.getList();
             if (list != null && !list.isEmpty()) {
                 for (Contact contact : list) {
-                    numberHashes.put(StringUtil.maskNumber(contact.phone),
+                    numbersMap.put(contact.phone,
                             new com.chamika.research.smartprediction.ui.hover.Contact(contact.displayName, contact.phone, contact.uriPhoto));
                 }
             }
@@ -133,16 +133,17 @@ public class MultiSectionHoverMenu extends HoverMenu {
             Iterator<? extends ContactPrediction> iterator = predictionList.iterator();
             while (iterator.hasNext()) {
                 ContactPrediction contactPrediction = iterator.next();
-                com.chamika.research.smartprediction.ui.hover.Contact contact = numberHashes.get(contactPrediction.getHashedNumber());
+                String realNumber = StringUtil.decrypt(mContext, contactPrediction.getEncryptedNumber());
+                com.chamika.research.smartprediction.ui.hover.Contact contact = numbersMap.get(realNumber);
                 if (contact != null) {
                     contactPrediction.setName(contact.getName());
                     contactPrediction.setNumber(contact.getNumber());
                     contactPrediction.setUri(contact.getUri());
                 } else {
-                    contactPrediction.setName(contactPrediction.getHashedNumber());
-                    contactPrediction.setNumber(contactPrediction.getHashedNumber());
+                    contactPrediction.setName(realNumber);
+                    contactPrediction.setNumber(realNumber);
                     contactPrediction.setUri(null);
-                    //TODO remove only
+                    //remove if needed
 //                    iterator.remove();
                 }
             }

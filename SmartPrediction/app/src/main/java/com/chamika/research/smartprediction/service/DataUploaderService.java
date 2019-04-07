@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.chamika.research.smartprediction.store.BaseStore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -29,6 +30,7 @@ public class DataUploaderService extends BroadcastReceiver {
     }
 
     private void uploadDatabase(Context context) {
+        BaseStore.closeDBs();
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 

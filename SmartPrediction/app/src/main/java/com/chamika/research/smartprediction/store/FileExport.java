@@ -33,6 +33,8 @@ public class FileExport {
                 while (cursor.moveToNext()) {
                     String format = dataMapper.map(cursor);
                     if (format != null && !format.isEmpty()) {
+                        format = format.replace("\n", "");
+                        format = format.replace("\r", "");
                         bw.write(format);
                         bw.newLine();
                     }

@@ -35,7 +35,7 @@ public class ContactPrediction extends Prediction {
         this.uri = uri;
     }
 
-    public String getHashedNumber() {
+    public String getEncryptedNumber() {
         return data;
     }
 }

@@ -36,7 +36,7 @@ public class SMSUtil {
                 if (lastTime < msg.receivedDate) {
                     Log.d(TAG, "SMS:" + msg.toString());
                     int actionType = (msg.type == Sms.MessageType.SENT) ? 1 : 2;
-                    BaseStore.saveEvent(context, actionType, SMS, msg.receivedDate, StringUtil.maskNumber(msg.address));
+                    BaseStore.saveEvent(context, actionType, SMS, msg.receivedDate, StringUtil.encrypt(context, msg.address));
                     if (maxTime < msg.receivedDate) {
                         maxTime = msg.receivedDate;
                     }

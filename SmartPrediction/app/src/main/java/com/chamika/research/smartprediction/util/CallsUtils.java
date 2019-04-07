@@ -45,7 +45,7 @@ public class CallsUtils {
                         callType = "MISSED";
                     }
 
-                    BaseStore.saveEvent(context, actionType, CALL, call.callDate, StringUtil.maskNumber(call.number), String.valueOf(call.duration), callType);
+                    BaseStore.saveEvent(context, actionType, CALL, call.callDate, StringUtil.encrypt(context, call.number), String.valueOf(call.duration), callType);
                     if (maxTime < call.callDate) {
                         maxTime = call.callDate;
                     }

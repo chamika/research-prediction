@@ -231,23 +231,25 @@ public class BaseStore {
     }
 
 
-    public static void closeDBs() {
+    public static synchronized void closeDBs() {
         if (dbReadable != null && dbReadable.isOpen()) {
             dbReadable.close();
+            dbReadable = null;
         }
         if (dbWritable != null && dbWritable.isOpen()) {
+            dbWritable.close();
             dbWritable.close();
         }
     }
 
-    private static void initReadableDB(Context context) {
+    private static synchronized void initReadableDB(Context context) {
         if (dbReadable == null || !dbReadable.isOpen()) {
             DBHelper mDbHelper = new DBHelper(context);
             dbReadable = mDbHelper.getReadableDatabase();
         }
     }
 
-    private static void initWritableDB(Context context) {
+    private static synchronized void initWritableDB(Context context) {
         if (dbWritable == null || !dbWritable.isOpen()) {
             DBHelper mDbHelper = new DBHelper(context);
             dbWritable = mDbHelper.getWritableDatabase();
