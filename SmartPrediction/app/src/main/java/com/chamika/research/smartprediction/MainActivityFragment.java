@@ -38,7 +38,9 @@ import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.Constant;
 import com.chamika.research.smartprediction.util.SettingsUtil;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import io.mattcarroll.hover.overlay.OverlayPermission;
 
@@ -77,9 +79,9 @@ public class MainActivityFragment extends Fragment {
         Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
         pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
 
-        initCheckBoxDangerousPermission(rootView, R.id.check_calls, android.Manifest.permission.READ_CALL_LOG, PERMISSIONS_REQUEST_READ_CALL_LOG, Constant.PREF_CALL);
-        initCheckBoxDangerousPermission(rootView, R.id.check_msgs, android.Manifest.permission.READ_SMS, PERMISSIONS_REQUEST_READ_SMS, Constant.PREF_MSG);
-        initCheckBoxDangerousPermission(rootView, R.id.check_location, Manifest.permission.ACCESS_FINE_LOCATION, PERMISSIONS_REQUEST_LOCATION, Constant.PREF_LOCATION);
+        initCheckBoxDangerousPermission(rootView, R.id.check_calls, new String[]{android.Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CALL_LOG, Constant.PREF_CALL);
+        initCheckBoxDangerousPermission(rootView, R.id.check_msgs, new String[]{android.Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_SMS, Constant.PREF_MSG);
+        initCheckBoxDangerousPermission(rootView, R.id.check_location, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION, Constant.PREF_LOCATION);
         initCheckBoxNormalPermission(rootView, R.id.check_activities, Constant.PREF_ACTIVITY);
         initSystemUsagePermission(rootView, R.id.check_apps, Constant.PREF_APP_USAGE);
 
@@ -155,16 +157,22 @@ public class MainActivityFragment extends Fragment {
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, interval, pendingIntent);
     }
 
-    private void initCheckBoxDangerousPermission(View rootView, int checkboxResId, final String permission, final int permissionRequest, final String settingsPrefKey) {
+    private void initCheckBoxDangerousPermission(View rootView, int checkboxResId, final String[] permissions, final int permissionRequest, final String settingsPrefKey) {
         final Context context = this.getContext();
         Switch checkBox = rootView.findViewById(checkboxResId);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    List<String> deniedPermissions = new ArrayList<>();
+                    for (String permission : permissions) {
+                        if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                            deniedPermissions.add(permission);
+                        }
+                    }
+                    if (!deniedPermissions.isEmpty()) {
                         ActivityCompat.requestPermissions(MainActivityFragment.this.getActivity(),
-                                new String[]{permission},
+                                deniedPermissions.toArray(new String[0]),
                                 permissionRequest);
                     } else {
                         SettingsUtil.setBooleanPref(context, settingsPrefKey, true);
