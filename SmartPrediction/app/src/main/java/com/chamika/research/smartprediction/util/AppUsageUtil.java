@@ -9,6 +9,8 @@ import com.chamika.research.smartprediction.store.BaseStore;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by chamika on 3/16/17.
@@ -18,6 +20,8 @@ public class AppUsageUtil {
 
     public static final String APP = "APP";
     public static final String TAG = AppUsageUtil.class.getSimpleName();
+
+    private static long APP_UPDATE_INTERVAL = 5 * 60 * 1000;
 
     public static void updateAppUsage(Context context) {
         if (!SettingsUtil.getBooleanPref(context, Constant.PREF_APP_USAGE)) {
@@ -45,16 +49,22 @@ public class AppUsageUtil {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         int count = 0;
         int countAll = 0;
+        Map<String, Long> lastRecordedTimeMap = new HashMap<>();
         while (usageEvents.hasNextEvent()) {
             countAll++;
             UsageEvents.Event event = new UsageEvents.Event();
             usageEvents.getNextEvent(event);
             if (event.getEventType() != UsageEvents.Event.MOVE_TO_BACKGROUND) {
-                boolean hasLauncher = context.getPackageManager().getLaunchIntentForPackage(event.getPackageName()) != null;
-                if (hasLauncher) {
-//                    Log.d(TAG, "App Event:" + event.getPackageName() + " " + getEventType(event.getEventType()) + " " + sdf.format(new Date(event.getTimeStamp())));
-                    BaseStore.saveEvent(context, 1, APP, event.getTimeStamp(), event.getPackageName(), null);
-                    count++;
+                String packageName = event.getPackageName();
+                long timeStamp = event.getTimeStamp();
+                Long last = lastRecordedTimeMap.get(packageName);
+                if (last == null || (timeStamp - last) > APP_UPDATE_INTERVAL) {
+                    boolean hasLauncher = context.getPackageManager().getLaunchIntentForPackage(packageName) != null;
+                    if (hasLauncher) {
+                        BaseStore.saveEvent(context, 1, APP, timeStamp, packageName, null);
+                        lastRecordedTimeMap.put(packageName, timeStamp);
+                        count++;
+                    }
                 }
             }
         }
