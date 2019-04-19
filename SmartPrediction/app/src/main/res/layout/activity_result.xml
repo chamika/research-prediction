@@ -25,6 +25,31 @@
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintRight_creator="1" />
 
+    <RadioGroup
+        android:id="@+id/clutering_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintRight_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edt_file_path">
+
+        <RadioButton
+            android:id="@+id/rad_kmeans"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/kmeans" />
+
+        <RadioButton
+            android:id="@+id/rad_em"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/em" />
+    </RadioGroup>
+
     <Button
         android:id="@+id/btn_load"
         style="@style/Widget.AppCompat.Button.Colored"
@@ -36,7 +61,7 @@
         android:onClick="clickLoad"
         android:text="@string/cluster"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edt_file_path" />
+        app:layout_constraintTop_toBottomOf="@id/clutering_group" />
 
     <EditText
         android:id="@+id/edt_cluster_amount"
@@ -80,7 +105,7 @@
         android:layout_marginRight="73dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/edt_cluster_amount"
-        app:layout_constraintTop_toBottomOf="@+id/edt_file_path"
+        app:layout_constraintTop_toBottomOf="@+id/clutering_group"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintRight_creator="1" />
 
@@ -110,7 +135,7 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rec_clusters"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="32dp"
         android:layout_marginRight="8dp"
@@ -118,6 +143,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_time" />
+        app:layout_constraintTop_toBottomOf="@id/btn_date" />
 
 </android.support.constraint.ConstraintLayout>

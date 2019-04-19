@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.processor.ClusteredPredictionProvider;
 import com.chamika.research.smartprediction.prediction.processor.EMPredictionProcessor;
+import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProcessor;
 import com.chamika.research.smartprediction.prediction.processor.PredictionProcessor;
 import com.chamika.research.smartprediction.util.Config;
 
@@ -42,6 +44,8 @@ public class ResultsActivity extends AppCompatActivity implements PredictionProc
     private ProgressBar progressBar;
     private Button btnDate;
     private Button btnTime;
+    private RadioButton radKmeans;
+    private RadioButton radEM;
 
     private LinearLayoutManager layoutManager;
     private RecyclerView.Adapter adapter;
@@ -68,6 +72,8 @@ public class ResultsActivity extends AppCompatActivity implements PredictionProc
         progressBar = (ProgressBar) findViewById(R.id.progress);
         btnDate = findViewById(R.id.btn_date);
         btnTime = findViewById(R.id.btn_time);
+        radKmeans = findViewById(R.id.rad_kmeans);
+        radEM = findViewById(R.id.rad_em);
 
         String path = new File(this.getFilesDir(), Config.DATA_FILE_NAME).getAbsolutePath();
         edtFilepath.setText(path);
@@ -108,13 +114,20 @@ public class ResultsActivity extends AppCompatActivity implements PredictionProc
     }
 
     public void clickLoad(View v) {
-//        predictionProcessor = new KMeansPredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
-        predictionProcessor = new EMPredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
-        predictionProcessor.setInitializationListener(this);
-        predictionProcessor.init();
+        if (radKmeans.isChecked()) {
+            predictionProcessor = new KMeansPredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
+        } else if (radEM.isChecked()) {
+            predictionProcessor = new EMPredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
+        }
+        if (predictionProcessor != null) {
+            predictionProcessor.setInitializationListener(this);
+            predictionProcessor.init();
 
-        progressBar.setVisibility(View.VISIBLE);
-        enableElements(false);
+            progressBar.setVisibility(View.VISIBLE);
+            enableElements(false);
+        } else {
+            Toast.makeText(this, "No Clustering algorithm selected", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadData() {

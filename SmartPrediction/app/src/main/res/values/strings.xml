@@ -9,4 +9,6 @@
     <string name="menu_view_data">View Data</string>
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
+    <string name="kmeans">KMeans</string>
+    <string name="em">EM</string>
 </resources>
