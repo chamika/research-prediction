@@ -18,7 +18,7 @@ import android.widget.Toast;
 import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.processor.ClusteredPredictionProvider;
-import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProvider;
+import com.chamika.research.smartprediction.prediction.processor.EMPredictionProcessor;
 import com.chamika.research.smartprediction.prediction.processor.PredictionProcessor;
 import com.chamika.research.smartprediction.util.Config;
 
@@ -108,7 +108,8 @@ public class ResultsActivity extends AppCompatActivity implements PredictionProc
     }
 
     public void clickLoad(View v) {
-        predictionProcessor = new KMeansPredictionProvider(this, Integer.parseInt(edtClusterAmount.getText().toString()));
+//        predictionProcessor = new KMeansPredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
+        predictionProcessor = new EMPredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
         predictionProcessor.setInitializationListener(this);
         predictionProcessor.init();
 

@@ -5,7 +5,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProvider;
+import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProcessor;
 import com.chamika.research.smartprediction.prediction.processor.PredictionProcessor;
 import com.chamika.research.smartprediction.store.BaseStore;
 
@@ -27,7 +27,8 @@ public class PredictionEngine {
     public PredictionEngine(Context context) {
         predictionListeners = new ArrayList<>();
         this.context = context;
-        processor = new KMeansPredictionProvider(context);
+        processor = new KMeansPredictionProcessor(context);
+//        processor = new EMPredictionProcessor(context);
         processor.init();
     }
 

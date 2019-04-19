@@ -20,6 +20,6 @@ public class Config {
     public static int PREDICTION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000; //24 hours
 
     //TODO set to false when releasing
-    public final static boolean DEMO = false;
+    public final static boolean DEMO = true;
 
 }

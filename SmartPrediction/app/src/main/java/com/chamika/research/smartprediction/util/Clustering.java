@@ -4,7 +4,6 @@ package com.chamika.research.smartprediction.util;
 import android.util.Log;
 
 import com.chamika.research.smartprediction.prediction.ClusteringDataMapper;
-import com.chamika.research.smartprediction.prediction.KMeans;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.evaluation.ClusterEvaluation;
@@ -25,6 +24,12 @@ import java.util.Comparator;
 public class Clustering {
 
     private static String TAG = Clustering.class.getSimpleName();
+
+    private Clusterer clusterer;
+
+    public Clustering(Clusterer clusterer) {
+        this.clusterer = clusterer;
+    }
 
     private static boolean overlapped(Dataset cluster1, Dataset cluster2) {
         int index = 1;
@@ -48,21 +53,20 @@ public class Clustering {
 
     }
 
-    public Dataset[] doCluster(String fileAbsolutePath, ClusteringDataMapper dataMapper, int clusterCount, int iterations) throws IOException {
+    public Dataset[] doCluster(String fileAbsolutePath, ClusteringDataMapper dataMapper) throws IOException {
         /* Load a dataset */
         Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), dataMapper.getClassIndex(), ",");
         /* Create a new instance of the KMeans algorithm, with no options
          * specified. By default this will generate 4 clusters. */
         if (data.size() == 0) {
-            Log.d(TAG, String.format("clustering skipped. dataset is empty"));
+            Log.d(TAG, "clustering skipped. dataset is empty");
             return new Dataset[0];
         }
-        Log.d(TAG, String.format("clustering started. clusterCount=%d iterations=%d", clusterCount, iterations));
+        Log.d(TAG, String.format("clustering started. clusterer:%s", clusterer.getClass().getSimpleName()));
         long start = System.currentTimeMillis();
-        Clusterer km = new KMeans(clusterCount, iterations);
         /* Cluster the data, it will be returned as an array of data sets, with
          * each dataset representing a cluster. */
-        Dataset[] clusters = km.cluster(data);
+        Dataset[] clusters = clusterer.cluster(data);
         Log.d(TAG, "clustering finished. count = " + clusters.length);
         Log.d(TAG, "clustering total time = " + (System.currentTimeMillis() - start) + " ms");
         ClusterEvaluation sse = new SumOfSquaredErrors();

@@ -9,6 +9,7 @@ import com.chamika.research.smartprediction.prediction.AppPrediction;
 import com.chamika.research.smartprediction.prediction.CallPrediction;
 import com.chamika.research.smartprediction.prediction.ClusteringDataMapper;
 import com.chamika.research.smartprediction.prediction.Event;
+import com.chamika.research.smartprediction.prediction.KMeans;
 import com.chamika.research.smartprediction.prediction.MessagePrediction;
 import com.chamika.research.smartprediction.prediction.Prediction;
 import com.chamika.research.smartprediction.prediction.TimeActivityBasedDataMapper;
@@ -32,24 +33,24 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class KMeansPredictionProvider extends PredictionProcessor implements ClusteredPredictionProvider {
+public class KMeansPredictionProcessor extends PredictionProcessor implements ClusteredPredictionProvider {
+    private static final String TAG = KMeansPredictionProcessor.class.getSimpleName();
     public static final int DEFAULT_CLUSTER_COUNT = 48 * 7; // approximately 30 mins predictions
     public static final int CLUSTER_ITERATIONS = 1000;
-    private static final String TAG = KMeansPredictionProvider.class.getSimpleName();
-    private static final int MAX_PREDICTIONS = 5;
     private static int PREDICTION_PROCESSOR_ID = 1;
+    private static final int MAX_PREDICTIONS = 5;
     private Context context;
     private int clusterCount;
     private NavigableMap<Double, List<Dataset>> clusteredData = new TreeMap<>();
     private NavigableMap<Double, List<Prediction>> predictionData = new TreeMap<>();
     private ClusteringDataMapper dataMapper = new TimeActivityBasedDataMapper(10);
 
-    public KMeansPredictionProvider(Context context) {
+    public KMeansPredictionProcessor(Context context) {
         this.context = context;
         this.clusterCount = DEFAULT_CLUSTER_COUNT;
     }
 
-    public KMeansPredictionProvider(Context context, int clusterCount) {
+    public KMeansPredictionProcessor(Context context, int clusterCount) {
         this.context = context;
         this.clusterCount = clusterCount;
     }
@@ -206,7 +207,7 @@ public class KMeansPredictionProvider extends PredictionProcessor implements Clu
                 if (context != null) {
                     String path = new File(context.getFilesDir(), Config.DATA_FILE_NAME).getAbsolutePath();
                     startTime = System.currentTimeMillis();
-                    Dataset[] datasets = new Clustering().doCluster(path, dataMapper, clusterCount, CLUSTER_ITERATIONS);
+                    Dataset[] datasets = new Clustering(new KMeans(clusterCount, CLUSTER_ITERATIONS)).doCluster(path, dataMapper);
 
                     //prepare clustered data
                     clusteredData.clear();
@@ -256,7 +257,7 @@ public class KMeansPredictionProvider extends PredictionProcessor implements Clu
                     initializationListener.onInitializedFailed();
                 }
             }
-            KMeansPredictionProvider.this.initialized = true;
+            KMeansPredictionProcessor.this.initialized = true;
         }
     }
 }
