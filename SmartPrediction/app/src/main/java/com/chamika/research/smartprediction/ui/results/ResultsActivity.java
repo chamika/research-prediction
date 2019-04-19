@@ -17,7 +17,9 @@ import android.widget.Toast;
 
 import com.chamika.research.smartprediction.R;
 import com.chamika.research.smartprediction.prediction.Event;
-import com.chamika.research.smartprediction.prediction.PredictionProcessor;
+import com.chamika.research.smartprediction.prediction.processor.ClusteredPredictionProvider;
+import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProvider;
+import com.chamika.research.smartprediction.prediction.processor.PredictionProcessor;
 import com.chamika.research.smartprediction.util.Config;
 
 import net.sf.javaml.core.Dataset;
@@ -106,7 +108,7 @@ public class ResultsActivity extends AppCompatActivity implements PredictionProc
     }
 
     public void clickLoad(View v) {
-        predictionProcessor = new PredictionProcessor(this, Integer.parseInt(edtClusterAmount.getText().toString()));
+        predictionProcessor = new KMeansPredictionProvider(this, Integer.parseInt(edtClusterAmount.getText().toString()));
         predictionProcessor.setInitializationListener(this);
         predictionProcessor.init();
 
@@ -115,11 +117,11 @@ public class ResultsActivity extends AppCompatActivity implements PredictionProc
     }
 
     private void loadData() {
-        if (predictionProcessor != null && predictionProcessor.isInitialized()) {
+        if (predictionProcessor != null && predictionProcessor.isInitialized() && predictionProcessor instanceof ClusteredPredictionProvider) {
             Event event = new Event(selectedTime.getTime());
             List<Event> events = new ArrayList<>();
             events.add(event);
-            Map.Entry<Double, List<Dataset>> entry = predictionProcessor.queryClusterDataset(events);
+            Map.Entry<Double, List<Dataset>> entry = ((ClusteredPredictionProvider) predictionProcessor).queryClusterDataset(events);
 
             if (entry != null) {
                 List<String> allData = new ArrayList<>();

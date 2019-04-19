@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProvider;
+import com.chamika.research.smartprediction.prediction.processor.PredictionProcessor;
 import com.chamika.research.smartprediction.store.BaseStore;
 
 import java.lang.ref.WeakReference;
@@ -18,24 +20,15 @@ public class PredictionEngine {
     private static final String TAG = PredictionEngine.class.getSimpleName();
     public static final int EVENT_ACTIVITY_LOOKBACK_MINS = 10;
 
-    private static PredictionEngine INSTANCE;
-
     private List<PredictionListener> predictionListeners;
     private PredictionProcessor processor;
     private Context context;
 
-    private PredictionEngine(Context context) {
+    public PredictionEngine(Context context) {
         predictionListeners = new ArrayList<>();
         this.context = context;
-        processor = new PredictionProcessor(context);
+        processor = new KMeansPredictionProvider(context);
         processor.init();
-    }
-
-    public static PredictionEngine getInstance(Context context) {
-        if (INSTANCE == null) {
-            INSTANCE = new PredictionEngine(context);
-        }
-        return INSTANCE;
     }
 
     public void addPredictionListener(PredictionListener listener) {

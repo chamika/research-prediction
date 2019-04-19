@@ -53,12 +53,18 @@ public class Clustering {
         Dataset data = FileHandler.loadDataset(new File(fileAbsolutePath), dataMapper.getClassIndex(), ",");
         /* Create a new instance of the KMeans algorithm, with no options
          * specified. By default this will generate 4 clusters. */
+        if (data.size() == 0) {
+            Log.d(TAG, String.format("clustering skipped. dataset is empty"));
+            return new Dataset[0];
+        }
         Log.d(TAG, String.format("clustering started. clusterCount=%d iterations=%d", clusterCount, iterations));
+        long start = System.currentTimeMillis();
         Clusterer km = new KMeans(clusterCount, iterations);
         /* Cluster the data, it will be returned as an array of data sets, with
          * each dataset representing a cluster. */
         Dataset[] clusters = km.cluster(data);
         Log.d(TAG, "clustering finished. count = " + clusters.length);
+        Log.d(TAG, "clustering total time = " + (System.currentTimeMillis() - start) + " ms");
         ClusterEvaluation sse = new SumOfSquaredErrors();
 //        Log.d(TAG,"score = " + sse.score(clusters));
 

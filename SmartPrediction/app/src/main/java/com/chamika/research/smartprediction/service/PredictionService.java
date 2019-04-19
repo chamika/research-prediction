@@ -285,7 +285,9 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     }
 
     private void initPredictionEngine() {
-        this.predictionEngine = PredictionEngine.getInstance(this.getApplicationContext());
+        if (predictionEngine == null) {
+            this.predictionEngine = new PredictionEngine(this.getApplicationContext());
+        }
 //        this.predictionEngine.addPredictionListener(this);
     }
 
