@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -34,10 +35,10 @@ public class DataUploaderService extends BroadcastReceiver {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 
-        String id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        String filename = new SimpleDateFormat("yyyyMMddHH:mm:ss.SSS", Locale.US).format(new Date()) + ".db";
+        String id = Build.MODEL.trim().replace(" ", "") + "-" + Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String filename = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.US).format(new Date()) + ".db";
         Log.d(TAG, "Starting to upload to directory:" + id);
-        StorageReference fileRef = storageRef.child("userData").child(id).child(filename);
+        StorageReference fileRef = storageRef.child("suggestions").child(id).child(filename);
         try {
             File currentDB = context.getDatabasePath("events.db");
             if (currentDB.exists()) {
