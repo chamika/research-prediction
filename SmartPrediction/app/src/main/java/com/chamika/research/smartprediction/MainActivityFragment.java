@@ -80,40 +80,6 @@ public class MainActivityFragment extends Fragment {
         Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
         pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
 
-        initCheckBoxDangerousPermission(rootView, R.id.check_calls, new String[]{android.Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CALL_LOG, Constant.PREF_CALL);
-        initCheckBoxDangerousPermission(rootView, R.id.check_msgs, new String[]{android.Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_SMS, Constant.PREF_MSG);
-        initCheckBoxDangerousPermission(rootView, R.id.check_location, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION, Constant.PREF_LOCATION);
-        initCheckBoxNormalPermission(rootView, R.id.check_activities, Constant.PREF_ACTIVITY);
-        initSystemUsagePermission(rootView, R.id.check_apps, Constant.PREF_APP_USAGE);
-
-//        rootView.findViewById(R.id.btn_start).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                start(v);
-//            }
-//        });
-
-//        rootView.findViewById(R.id.btn_stop).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                cancel(v);
-//            }
-//        });
-
-//        rootView.findViewById(R.id.btn_view).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                view(v);
-//            }
-//        });
-
-//        rootView.findViewById(R.id.btn_cluster).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                cluster(v);
-//            }
-//        });
-
         btnStart = rootView.findViewById(R.id.btn_prediction);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,12 +88,13 @@ public class MainActivityFragment extends Fragment {
             }
         });
 
-//        rootView.findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                sendEvent(new Event(new Date()));
-//            }
-//        });
+        initCheckBoxDangerousPermission(rootView, R.id.check_calls, new String[]{android.Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CALL_LOG, Constant.PREF_CALL);
+        initCheckBoxDangerousPermission(rootView, R.id.check_msgs, new String[]{android.Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_SMS, Constant.PREF_MSG);
+        initCheckBoxDangerousPermission(rootView, R.id.check_location, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION, Constant.PREF_LOCATION);
+        initCheckBoxNormalPermission(rootView, R.id.check_activities, Constant.PREF_ACTIVITY);
+        initSystemUsagePermission(rootView, R.id.check_apps, Constant.PREF_APP_USAGE);
+
+        updateStartState(rootView);
 
         return rootView;
     }
@@ -180,6 +147,7 @@ public class MainActivityFragment extends Fragment {
                 } else {
                     SettingsUtil.setBooleanPref(context, settingsPrefKey, false);
                 }
+                updateStartState(getView());
             }
         });
         checkBox.setChecked(SettingsUtil.getBooleanPref(context, settingsPrefKey));
@@ -192,12 +160,13 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 SettingsUtil.setBooleanPref(context, settingsPrefKey, isChecked);
+                updateStartState(getView());
             }
         });
         checkBox.setChecked(SettingsUtil.getBooleanPref(context, settingsPrefKey));
     }
 
-    private void initSystemUsagePermission(View rootView, int checkboxResId, final String settingsPrefKey) {
+    private void initSystemUsagePermission(final View rootView, int checkboxResId, final String settingsPrefKey) {
         final Context context = this.getContext();
         final Switch checkBox = rootView.findViewById(checkboxResId);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -214,9 +183,25 @@ public class MainActivityFragment extends Fragment {
                 } else {
                     SettingsUtil.setBooleanPref(context, settingsPrefKey, false);
                 }
+                updateStartState(getView());
             }
         });
         checkBox.setChecked(SettingsUtil.getBooleanPref(context, settingsPrefKey));
+    }
+
+    private void updateStartState(View rootView) {
+        if (rootView != null) {
+            boolean enable = false;
+            int[] switches = {R.id.check_calls, R.id.check_msgs, R.id.check_apps};
+            for (int switchId : switches) {
+                Switch chkSwitch = rootView.findViewById(switchId);
+                if (chkSwitch.isChecked()) {
+                    enable = true;
+                    break;
+                }
+            }
+            btnStart.setEnabled(enable);
+        }
     }
 
     public void start() {
@@ -362,11 +347,13 @@ public class MainActivityFragment extends Fragment {
                 checkBox.setChecked(granted);
                 SettingsUtil.setBooleanPref(context, Constant.PREF_APP_USAGE, granted);
             }
+            updateStartState(getView());
         } else if (requestCode == REQUEST_CODE_HOVER_PERMISSION) {
             Context context = this.getContext();
             if (context != null && OverlayPermission.hasRuntimePermissionToDrawOverlay(context)) {
                 startPredictionServiceWithUI(context);
             }
+            updateStartState(getView());
         }
     }
 }
