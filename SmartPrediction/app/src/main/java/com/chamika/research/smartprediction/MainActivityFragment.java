@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -50,11 +49,13 @@ import io.mattcarroll.hover.overlay.OverlayPermission;
 public class MainActivityFragment extends Fragment {
 
     private static final int REQUEST_CODE_HOVER_PERMISSION = 2000;
+    private static final int REQUEST_CODE_APP_USAGE_PERMISSION = 2001;
 
     private static final int PERMISSIONS_REQUEST_READ_CALL_LOG = 1000;
     private static final int PERMISSIONS_REQUEST_READ_SMS = 1001;
     private static final int PERMISSIONS_REQUEST_ACTIVITY = 1002;
     private static final int PERMISSIONS_REQUEST_LOCATION = 1003;
+
     private PendingIntent pendingIntent;
 
     private boolean serviceRunning = false;
@@ -159,7 +160,7 @@ public class MainActivityFragment extends Fragment {
 
     private void initCheckBoxDangerousPermission(View rootView, int checkboxResId, final String[] permissions, final int permissionRequest, final String settingsPrefKey) {
         final Context context = this.getContext();
-        Switch checkBox = rootView.findViewById(checkboxResId);
+        final Switch checkBox = rootView.findViewById(checkboxResId);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -171,9 +172,8 @@ public class MainActivityFragment extends Fragment {
                         }
                     }
                     if (!deniedPermissions.isEmpty()) {
-                        ActivityCompat.requestPermissions(MainActivityFragment.this.getActivity(),
-                                deniedPermissions.toArray(new String[0]),
-                                permissionRequest);
+                        checkBox.setChecked(false);
+                        requestPermissions(deniedPermissions.toArray(new String[0]), permissionRequest);
                     } else {
                         SettingsUtil.setBooleanPref(context, settingsPrefKey, true);
                     }
@@ -204,18 +204,9 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    boolean granted = false;
-                    AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
-                    int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
-                            android.os.Process.myUid(), context.getPackageName());
-
-                    if (mode == AppOpsManager.MODE_DEFAULT) {
-                        granted = (context.checkCallingOrSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED);
-                    } else {
-                        granted = (mode == AppOpsManager.MODE_ALLOWED);
-                    }
+                    boolean granted = isAppUsageGranted(context);
                     if (!granted) {
-                        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+                        startActivityForResult(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS), REQUEST_CODE_APP_USAGE_PERMISSION);
                         checkBox.setChecked(false);
                     } else {
                         SettingsUtil.setBooleanPref(context, settingsPrefKey, true);
@@ -265,18 +256,36 @@ public class MainActivityFragment extends Fragment {
         Context context = this.getContext();
         if (context != null) {
             if (OverlayPermission.hasRuntimePermissionToDrawOverlay(context)) {
-                Intent intent = new Intent(context.getApplicationContext(), PredictionService.class);
-                if (serviceRunning) {
-                    intent.putExtra(PredictionService.INTENT_EXTRA_STOP, true);
-                }
-                serviceRunning = !serviceRunning;
-                startHoverService(intent);
-                updateUI();
+                startPredictionServiceWithUI(context);
             } else {
                 Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION", Uri.parse("package:" + context.getPackageName()));
                 startActivityForResult(intent, REQUEST_CODE_HOVER_PERMISSION);
             }
         }
+    }
+
+    private void startPredictionServiceWithUI(Context context) {
+        Intent intent = new Intent(context.getApplicationContext(), PredictionService.class);
+        if (serviceRunning) {
+            intent.putExtra(PredictionService.INTENT_EXTRA_STOP, true);
+        }
+        serviceRunning = !serviceRunning;
+        startHoverService(intent);
+        updateUI();
+    }
+
+    private boolean isAppUsageGranted(Context context) {
+        boolean granted = false;
+        AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(), context.getPackageName());
+
+        if (mode == AppOpsManager.MODE_DEFAULT) {
+            granted = (context.checkCallingOrSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED);
+        } else {
+            granted = (mode == AppOpsManager.MODE_ALLOWED);
+        }
+        return granted;
     }
 
     private void updateUI() {
@@ -310,7 +319,14 @@ public class MainActivityFragment extends Fragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         String setting = null;
         int resId = 0;
-        boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+        boolean granted = true;
+        for (int grantResult : grantResults) {
+            if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                granted = false;
+                break;
+            }
+        }
+
         switch (requestCode) {
             case PERMISSIONS_REQUEST_READ_CALL_LOG: {
                 setting = Constant.PREF_CALL;
@@ -331,6 +347,26 @@ public class MainActivityFragment extends Fragment {
         if (setting != null) {
             ((Switch) getView().findViewById(resId)).setChecked(granted);
             SettingsUtil.setBooleanPref(this.getContext(), setting, granted);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_APP_USAGE_PERMISSION) {
+            View rootView = getView();
+            Context context = this.getContext();
+            if (rootView != null && context != null) {
+                Switch checkBox = rootView.findViewById(R.id.check_apps);
+                boolean granted = isAppUsageGranted(context);
+                checkBox.setChecked(granted);
+                SettingsUtil.setBooleanPref(context, Constant.PREF_APP_USAGE, granted);
+            }
+        } else if (requestCode == REQUEST_CODE_HOVER_PERMISSION) {
+            Context context = this.getContext();
+            if (context != null && OverlayPermission.hasRuntimePermissionToDrawOverlay(context)) {
+                startPredictionServiceWithUI(context);
+            }
         }
     }
 }

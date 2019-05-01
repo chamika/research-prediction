@@ -76,6 +76,7 @@ public class UserActivityCollectorService extends Service {
             for (int enabledActivity : Config.ENABLED_ACTIVITIES) {
                 registerFence(Constant.FENCE_ACTIVITY + enabledActivity, DetectedActivityFence.starting(enabledActivity));
             }
+            Log.d(TAG, "activity detection background service started");
         } else {
             Log.d(TAG, "Activity sync disabled.");
         }
@@ -93,7 +94,6 @@ public class UserActivityCollectorService extends Service {
         if (!started) {
 //            startSensorReadingSnapshot();
             startDetecting();
-            Log.d(TAG, "activity detection background service started");
         }
         return START_STICKY;
     }
