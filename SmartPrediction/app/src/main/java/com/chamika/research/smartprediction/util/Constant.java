@@ -13,4 +13,5 @@ public class Constant {
     public static final String PREF_ACTIVITY = "PREF_ACTIVITY";
     public static final String PREF_LOCATION = "PREF_LOCATION";
     public static final String PREF_APP_USAGE = "PREF_APP_USAGE";
+    public static final String PREF_FIRST = "PREF_FIRST";
 }

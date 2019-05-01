@@ -32,9 +32,13 @@ import com.chamika.research.smartprediction.prediction.PredictionEngine;
 import com.chamika.research.smartprediction.ui.hover.MultiSectionHoverMenu;
 import com.chamika.research.smartprediction.ui.hover.adapters.OnItemSelectListener;
 import com.chamika.research.smartprediction.util.Config;
+import com.chamika.research.smartprediction.util.Constant;
+import com.chamika.research.smartprediction.util.SettingsUtil;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import io.mattcarroll.hover.HoverView;
 import io.mattcarroll.hover.OnExitListener;
@@ -256,6 +260,21 @@ public class PredictionService extends Service implements OnItemSelectListener<P
 
             manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), interval, pendingIntent);
             Log.d(TAG, "Scheduled prediction refresh");
+
+            boolean first = SettingsUtil.getBooleanPref(this, Constant.PREF_FIRST, true);
+            if (first) {
+                //let some time to collect data initially and then refresh engine.
+                TimerTask task = new TimerTask() {
+
+                    @Override
+                    public void run() {
+                        predictionEngine.refresh();
+                    }
+                };
+                Timer timer = new Timer();
+                timer.schedule(task, 10 * 60 * 1000);//trigger after 10mins
+                SettingsUtil.setBooleanPref(this, Constant.PREF_FIRST, false);
+            }
         }
     }
 

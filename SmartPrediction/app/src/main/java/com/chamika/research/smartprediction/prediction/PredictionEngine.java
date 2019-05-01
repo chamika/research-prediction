@@ -2,14 +2,12 @@ package com.chamika.research.smartprediction.prediction;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.chamika.research.smartprediction.prediction.processor.KMeansPredictionProcessor;
 import com.chamika.research.smartprediction.prediction.processor.PredictionProcessor;
 import com.chamika.research.smartprediction.store.BaseStore;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -126,37 +124,5 @@ public class PredictionEngine {
             return activityEvent;
         }
         return null;
-    }
-
-    private static class SavePredictionTask extends AsyncTask<PredictionSave, Integer, Boolean> {
-        private WeakReference<Context> contextRef;
-
-        public SavePredictionTask(Context context) {
-            this.contextRef = new WeakReference<>(context);
-        }
-
-        @Override
-        protected Boolean doInBackground(PredictionSave... predictionSaves) {
-            if (predictionSaves != null && predictionSaves.length > 1) {
-                for (PredictionSave predictionSave : predictionSaves) {
-                    List<Prediction> predictions = predictionSave.getPredictions();
-                    int predictionProcessorId = predictionSave.getPredictionProcessorId();
-                    Date time = predictionSave.getPredictionTime();
-                    long predictionId = System.currentTimeMillis();
-                    if (predictions != null) {
-                        for (int i = 0; i < predictions.size(); i++) {
-                            Prediction prediction = predictions.get(i);
-                            if (this.contextRef.get() != null) {
-                                BaseStore.savePrediction(this.contextRef.get(), predictionId, predictionProcessorId, i, prediction.getType().name(), time.getTime(), prediction.data);
-                            }
-                        }
-                    }
-                }
-                return true;
-            } else {
-                return false;
-            }
-        }
-
     }
 }
