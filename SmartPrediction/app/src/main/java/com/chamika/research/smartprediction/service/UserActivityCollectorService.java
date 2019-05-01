@@ -66,24 +66,28 @@ public class UserActivityCollectorService extends Service {
     }
 
     private void startDetecting() {
+        if (fenceReceiver != null) {
+            unregisterReceiver(fenceReceiver);
+        }
         fenceReceiver = new FenceReceiver();
         registerReceiver(fenceReceiver, new IntentFilter(Constant.FENCE_RECEIVER_ACTION));
 
         Intent intent = new Intent(Constant.FENCE_RECEIVER_ACTION);
         fencePendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 0, intent, 0);
 
-        if (SettingsUtil.getBooleanPref(this, Constant.PREF_ACTIVITY)) {
-            for (int enabledActivity : Config.ENABLED_ACTIVITIES) {
-                registerFence(Constant.FENCE_ACTIVITY + enabledActivity, DetectedActivityFence.starting(enabledActivity));
-            }
-            Log.d(TAG, "activity detection background service started");
-        } else {
-            Log.d(TAG, "Activity sync disabled.");
+        for (int enabledActivity : Config.ENABLED_ACTIVITIES) {
+            registerFence(Constant.FENCE_ACTIVITY + enabledActivity, DetectedActivityFence.starting(enabledActivity));
         }
+        Log.d(TAG, "activity detection background service started");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (!SettingsUtil.getBooleanPref(this, Constant.PREF_ACTIVITY)) {
+            Log.d(TAG, "Activity sync disabled.");
+            return START_NOT_STICKY;
+        }
+
         if (client == null) {
             client = new GoogleApiClient.Builder(this)
                     .addApi(Awareness.API)
@@ -111,7 +115,7 @@ public class UserActivityCollectorService extends Service {
             }
         }
         try {
-            if (started) {
+            if (started || fenceReceiver != null) {
                 unregisterReceiver(fenceReceiver);
             }
         } catch (Exception e) {

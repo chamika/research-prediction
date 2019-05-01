@@ -50,6 +50,9 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     public static final String INTENT_EXTRA_STOP = "stop";
     public static final String INTENT_EXTRA_REFRESH_PREDICTIONS = "refresh_predictions";
     private static final String TAG = PredictionService.class.getSimpleName();
+    private static final int REQUEST_CODE_DATA_COLLECTION_ALARM = 3000;
+    private static final int REQUEST_CODE_DB_UPLOAD_ALARM = 3001;
+    private static final int REQUEST_CODE_PREDICTION_ENGINE_REFRESH_ALARM = 3002;
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
     private PredictionEngine predictionEngine;
     private boolean screenReceiverRegistered = false;
@@ -159,6 +162,8 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     }
 
     private void stopPredictionService() {
+        stopDataCollection();
+        stopPredictionEngineRefresh(this);
         stopForeground(true);
         stopSelf();
     }
@@ -193,12 +198,31 @@ public class PredictionService extends Service implements OnItemSelectListener<P
 
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (manager != null) {
-            //SMS,CALL
+            //SMS,CALL, APPS
             Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DATA_COLLECTION_ALARM, alarmIntent, 0);
             int interval = Config.DATA_COLLECTION_REFRESH_INTERVAL;
             manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
             Log.d(TAG, "Started APP, SMS and CALL collection");
+        } else {
+            Log.d(TAG, "Alarm manager is null");
+        }
+    }
+
+    private void stopDataCollection() {
+        Context context = this;
+
+        //ACTIVITY, LOCATION
+        this.stopService(new Intent(context.getApplicationContext(), UserActivityCollectorService.class));
+        Log.d(TAG, "Stopped activity collection");
+
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager != null) {
+            //SMS,CALL, APPS
+            Intent alarmIntent = new Intent(context.getApplicationContext(), ScheduleDataCollectorService.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DATA_COLLECTION_ALARM, alarmIntent, 0);
+            manager.cancel(pendingIntent);
+            Log.d(TAG, "Stopped APP, SMS and CALL collection");
         } else {
             Log.d(TAG, "Alarm manager is null");
         }
@@ -208,7 +232,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (manager != null) {
             Intent alarmIntent = new Intent(context, DataUploaderService.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DB_UPLOAD_ALARM, alarmIntent, 0);
             int interval = Config.DATA_UPLOAD_INTERVAL;
             manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, interval, pendingIntent);
             Log.d(TAG, "Scheduled uploading data");
@@ -220,7 +244,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
         if (manager != null) {
             Intent alarmIntent = new Intent(context, PredictionService.class);
             alarmIntent.putExtra(INTENT_EXTRA_REFRESH_PREDICTIONS, true);
-            PendingIntent pendingIntent = PendingIntent.getService(context, 0, alarmIntent, 0);
+            PendingIntent pendingIntent = PendingIntent.getService(context, REQUEST_CODE_PREDICTION_ENGINE_REFRESH_ALARM, alarmIntent, 0);
             int interval = Config.PREDICTION_REFRESH_INTERVAL;
 
             //trigger at 0100AM
@@ -232,6 +256,17 @@ public class PredictionService extends Service implements OnItemSelectListener<P
 
             manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), interval, pendingIntent);
             Log.d(TAG, "Scheduled prediction refresh");
+        }
+    }
+
+    private void stopPredictionEngineRefresh(Context context) {
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager != null) {
+            Intent alarmIntent = new Intent(context, PredictionService.class);
+            alarmIntent.putExtra(INTENT_EXTRA_REFRESH_PREDICTIONS, true);
+            PendingIntent pendingIntent = PendingIntent.getService(context, REQUEST_CODE_PREDICTION_ENGINE_REFRESH_ALARM, alarmIntent, 0);
+            manager.cancel(pendingIntent);
+            Log.d(TAG, "Stopped prediction refresh");
         }
     }
 
