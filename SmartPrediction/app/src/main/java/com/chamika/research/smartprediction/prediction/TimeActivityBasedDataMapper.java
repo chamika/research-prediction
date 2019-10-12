@@ -107,7 +107,7 @@ public class TimeActivityBasedDataMapper implements ClusteringDataMapper {
             activity = mapActivity(lastActivity);
         }
 
-        String format = String.format(Locale.US, "%.4f,%.4f,%.0f,%s", dayOfWeek, timeOfDay, activity, text);
+        String format = String.format(Locale.US, "%.4f,%.4f,%.1f,%s", dayOfWeek, timeOfDay, activity, text);
 //        String format = String.format(Locale.US, "%.4f,%.4f,%s", dayOfWeek, timeOfDay, text);
         Log.d(TAG, format);
         return format;
@@ -141,13 +141,13 @@ public class TimeActivityBasedDataMapper implements ClusteringDataMapper {
         }
         switch (activity) {
             case "ON_FOOT":
-                return 1.0;
+                return 0.2;
             case "WALKING":
-                return 1.0;
+                return 0.3;
             case "RUNNING":
-                return 1.0;
+                return 0.6;
             case "ON_BICYCLE":
-                return 1.0;
+                return 0.8;
             case "IN_VEHICLE":
                 return 1.0;
             default:
