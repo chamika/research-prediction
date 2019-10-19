@@ -15,6 +15,40 @@ Smart Prediction(Suggestion) is an Android App which predicts shortcuts for App,
 
 
 ## Contributing
+You can either contribute as a developer or a tester
+
+#### As a developer
+You can go through the issues and comment on the issue which you need to work on. Do not try to work on an issue which somebody is working on. Then fix/complete the issue and send a Pull Request (PR). After the review it will be merged to the repository. 
+When comitting changes please use following format.
+
+```
+[<issue type>]: <description>
+<mandatory line break>
+<Long description if need further explaination than the description>
+```
+
+Example:
+```
+fix: Fix the issue Exception issue when trying to retrieve prediction
+
+If the clustering is not clompleted, invoking the retrive predictions will throw an Exception.
+```
+
+Here are the issue types which can be used. 
+
+* feat: a new feature
+* fix: a bug fix
+* docs: changes to documentation
+* style: formatting, missing semi colons, etc; no code change
+* refactor: refactoring production code
+* test: adding tests, refactoring test; no production code change
+* chore: updating build tasks, package manager configs, etc; no production code change
+
+Description of the commit message should sound commanding like Fix, Add. Make sure the description will not use more than 70 characters. If you need to add further explaination, mention them in the long description
+
+#### As a tester
+
+Build the application and run on your device and let us know if you encounter an error/improvement. Report them on issues and if the issue is valid, developers can start to work on them.
 
 ## License
 
