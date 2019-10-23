@@ -14,7 +14,10 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -63,12 +66,28 @@ public class PredictionService extends Service implements OnItemSelectListener<P
 
     private HoverView mHoverView;
     private boolean mIsRunning = false;
+    private Handler viewHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            HoverView hoverView = getHoverView();
+            try {
+                if (hoverView.isAttachedToWindow()) {
+                    ((WindowManager) PredictionService.this.getSystemService(Context.WINDOW_SERVICE)).removeViewImmediate(hoverView);
+                    Log.d(TAG, "HoverView removed from window");
+                } else {
+                    Log.d(TAG, "HoverView is not attached to window");
+                }
+                hoverView.removeFromWindow();
+            } catch (Exception e) {
+                Log.e(TAG, "Error removing hoverView", e);
+            }
+        }
+    };
     private OnExitListener mOnMenuOnExitListener = new OnExitListener() {
         public void onExit() {
+            removeHoverView(true);
             Log.d("HoverMenuService", "Menu exit requested. Exiting.");
-//            PredictionService.this.mHoverView.removeFromWindow();
-//            PredictionService.this.onHoverMenuExitingByUserRequest();
-//            PredictionService.this.stopSelf();
         }
     };
 
@@ -175,7 +194,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     public void onDestroy() {
         Log.d("HoverMenuService", "onDestroy()");
         if (this.mIsRunning) {
-            this.mHoverView.removeFromWindow();
+            removeHoverView(true);
             this.mIsRunning = false;
         }
         if (this.predictionEngine != null) {
@@ -314,11 +333,22 @@ public class PredictionService extends Service implements OnItemSelectListener<P
         this.mHoverView.addToWindow();
     }
 
+    private void removeHoverView(boolean removeFromWindow) {
+        HoverView hoverView = getHoverView();
+        if (hoverView != null) {
+            if (removeFromWindow) {
+                viewHandler.sendEmptyMessage(1);
+            } else {
+                hoverView.removeFromWindow();
+            }
+
+        }
+    }
+
     protected Context getContextForHoverMenu() {
         return this;
     }
 
-    @NonNull
     protected HoverView getHoverView() {
         return this.mHoverView;
     }
@@ -356,7 +386,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
             MultiSectionHoverMenu menu = new MultiSectionHoverMenu(this, this);
             menu.updateSections(predictions);
             if (menu.getSectionCount() > 0) {
-                getHoverView().removeFromWindow();
+                removeHoverView(false);
                 initHoverMenu();
                 getHoverView().setMenu(menu);
                 getHoverView().collapse();
