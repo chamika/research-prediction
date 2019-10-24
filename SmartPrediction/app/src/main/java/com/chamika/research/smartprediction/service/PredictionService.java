@@ -65,22 +65,31 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     private boolean screenReceiverRegistered = false;
 
     private HoverView mHoverView;
+    private MultiSectionHoverMenu menu;
+    private HoverView removingHoverView;
     private boolean mIsRunning = false;
     private Handler viewHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            HoverView hoverView = getHoverView();
-            try {
-                if (hoverView.isAttachedToWindow()) {
-                    ((WindowManager) PredictionService.this.getSystemService(Context.WINDOW_SERVICE)).removeViewImmediate(hoverView);
-                    Log.d(TAG, "HoverView removed from window");
-                } else {
-                    Log.d(TAG, "HoverView is not attached to window");
+            if (msg.what == 1) {
+                HoverView hoverView = removingHoverView;
+                try {
+                    if (hoverView.isAttachedToWindow()) {
+                        ((WindowManager) PredictionService.this.getSystemService(Context.WINDOW_SERVICE)).removeViewImmediate(hoverView);
+                        Log.d(TAG, "HoverView removed from window");
+                    } else {
+                        Log.d(TAG, "HoverView is not attached to window");
+                    }
+                    hoverView.removeFromWindow();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error removing hoverView", e);
                 }
-                hoverView.removeFromWindow();
-            } catch (Exception e) {
-                Log.e(TAG, "Error removing hoverView", e);
+            } else if (msg.what == 2 && menu != null) {
+                initHoverMenu();
+                getHoverView().setMenu(menu);
+                getHoverView().collapse();
+                menu = null;
             }
         }
     };
@@ -150,7 +159,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
                 }
 
                 initPredictionEngine();
-                this.initHoverMenu();
+//                this.initHoverMenu();
                 this.mIsRunning = true;
                 if (intent != null) {
                     createMenu(intent);
@@ -337,6 +346,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
         HoverView hoverView = getHoverView();
         if (hoverView != null) {
             if (removeFromWindow) {
+                removingHoverView = hoverView;
                 viewHandler.sendEmptyMessage(1);
             } else {
                 hoverView.removeFromWindow();
@@ -382,14 +392,19 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     }
 
     private void showPredictions(List<Prediction> predictions) {
+        if (predictions != null && predictions.isEmpty()) {
+            predictions.add(new AppPrediction("", "com.chamika.ubuntulogin"));
+        }
         if (predictions != null && !predictions.isEmpty()) {
             MultiSectionHoverMenu menu = new MultiSectionHoverMenu(this, this);
             menu.updateSections(predictions);
             if (menu.getSectionCount() > 0) {
-                removeHoverView(false);
-                initHoverMenu();
-                getHoverView().setMenu(menu);
-                getHoverView().collapse();
+                if (this.mHoverView != null) {
+                    this.mHoverView.close();
+                }
+                removeHoverView(true);
+                this.menu = menu;
+                viewHandler.sendEmptyMessage(2);
             }
         }
     }
