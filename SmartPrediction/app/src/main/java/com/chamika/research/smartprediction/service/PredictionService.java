@@ -392,9 +392,6 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     }
 
     private void showPredictions(List<Prediction> predictions) {
-        if (predictions != null && predictions.isEmpty()) {
-            predictions.add(new AppPrediction("", "com.chamika.ubuntulogin"));
-        }
         if (predictions != null && !predictions.isEmpty()) {
             MultiSectionHoverMenu menu = new MultiSectionHoverMenu(this, this);
             menu.updateSections(predictions);
