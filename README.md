@@ -22,14 +22,14 @@ You can go through the issues and comment on the issue which you need to work on
 When comitting changes please use following format.
 
 ```
-[<issue type>]: <description>
+[<issue type>] <description>
 <mandatory line break>
 <Long description if need further explaination than the description>
 ```
 
 Example:
 ```
-fix: Fix the issue Exception issue when trying to retrieve prediction
+[fix] Fix the issue Exception issue when trying to retrieve prediction
 
 If the clustering is not clompleted, invoking the retrive predictions will throw an Exception.
 ```
