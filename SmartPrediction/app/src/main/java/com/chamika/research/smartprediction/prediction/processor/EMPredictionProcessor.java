@@ -12,7 +12,6 @@ import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.MessagePrediction;
 import com.chamika.research.smartprediction.prediction.Prediction;
 import com.chamika.research.smartprediction.prediction.TimeActivityBasedDataMapper;
-import com.chamika.research.smartprediction.store.FileExport;
 import com.chamika.research.smartprediction.util.Clustering;
 import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.EventType;
@@ -102,6 +101,11 @@ public class EMPredictionProcessor extends PredictionProcessor implements Cluste
     public Map.Entry<Double, List<Dataset>> queryClusterDataset(List<Event> events) {
         double key = dataMapper.generateKey(events.get(0));
         return clusteredData.ceilingEntry(key);
+    }
+
+    @Override
+    public ClusteringDataMapper getDataMapper() {
+        return dataMapper;
     }
 
     public Map.Entry<Double, List<Prediction>> queryPredictions(List<Event> events) {
@@ -201,13 +205,10 @@ public class EMPredictionProcessor extends PredictionProcessor implements Cluste
         protected Dataset[] doInBackground(Void... params) {
             try {
                 Context context = contextRef.get();
-                String dataFileName = Config.DATA_FILE_NAME;
-                if (context != null) {
-                    FileExport.exportDBtoFile(context, dataFileName, dataMapper);
-                }
+                String dataFileName = prepareDataFile(context, dataMapper);
                 context = contextRef.get();
                 if (context != null) {
-                    String path = new File(context.getFilesDir(), Config.DATA_FILE_NAME).getAbsolutePath();
+                    String path = new File(context.getFilesDir(), dataFileName).getAbsolutePath();
                     startTime = System.currentTimeMillis();
                     //EM clustering
                     EM em = new EM();

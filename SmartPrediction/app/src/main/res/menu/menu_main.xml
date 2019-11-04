@@ -13,6 +13,11 @@
         android:title="@string/menu_cluster_test"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_cluster_accuracy"
+        android:orderInCategory="100"
+        android:title="@string/menu_cluster_accuracy"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_view"
         android:orderInCategory="100"
         android:title="@string/menu_view_data"

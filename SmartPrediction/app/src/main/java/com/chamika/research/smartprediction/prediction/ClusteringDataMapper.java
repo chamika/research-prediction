@@ -9,4 +9,6 @@ public interface ClusteringDataMapper extends DataMapper {
     double generateKey(Dataset dataset);
     
     double generateKey(Event event);
+
+    Event reverseKey(String entry);
 }

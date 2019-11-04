@@ -7,8 +7,10 @@ import com.chamika.research.smartprediction.store.BaseStore;
 
 import net.sf.javaml.core.Dataset;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -135,6 +137,22 @@ public class TimeActivityBasedDataMapper implements ClusteringDataMapper {
         return generateKey(dayOfWeek, timestep, mapActivity(event.getData()));
     }
 
+    @Override
+    public Event reverseKey(String entry) {
+        String[] splits = entry.split(",");
+        String classText = splits[getClassIndex()];
+        String[] classValues = classText.split("\\|");
+        Date eventTime = null;
+        try {
+            eventTime = sdf.parse(classValues[2]);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Event event = new Event(eventTime);
+        event.setData(reverseMapActivity(splits[getClassIndex() - 1]));
+        return event;
+    }
+
     public double mapActivity(String activity) {
         if (activity == null || activity.isEmpty()) {
             return 0D;
@@ -152,6 +170,23 @@ public class TimeActivityBasedDataMapper implements ClusteringDataMapper {
                 return 1.0;
             default:
                 return 0.0;
+        }
+    }
+
+    String reverseMapActivity(String activityValue) {
+        switch (activityValue) {
+            case "0.2":
+                return "ON_FOOT";
+            case "0.3":
+                return "WALKING";
+            case "0.6":
+                return "RUNNING";
+            case "0.8":
+                return "ON_BICYCLE";
+            case "1.0":
+                return "IN_VEHICLE";
+            default:
+                return null;
         }
     }
 

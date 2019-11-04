@@ -31,6 +31,7 @@ import com.chamika.research.smartprediction.service.DataUploaderService;
 import com.chamika.research.smartprediction.service.PredictionService;
 import com.chamika.research.smartprediction.service.ScheduleDataCollectorService;
 import com.chamika.research.smartprediction.service.UserActivityCollectorService;
+import com.chamika.research.smartprediction.ui.accuracy.AccuracyActivity;
 import com.chamika.research.smartprediction.ui.dataview.DataViewActivity;
 import com.chamika.research.smartprediction.ui.results.ResultsActivity;
 import com.chamika.research.smartprediction.util.Config;
@@ -40,6 +41,7 @@ import com.chamika.research.smartprediction.util.SettingsUtil;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import io.mattcarroll.hover.overlay.OverlayPermission;
 
@@ -111,6 +113,8 @@ public class MainActivityFragment extends Fragment {
             sendEvent(new Event(new Date()));
         } else if (id == R.id.action_cluster) {
             cluster();
+        } else if (id == R.id.action_cluster_accuracy) {
+            startClusterAccuracy();
         } else if (id == R.id.action_view) {
             view();
         }
@@ -234,6 +238,10 @@ public class MainActivityFragment extends Fragment {
 
     private void cluster() {
         this.getActivity().startActivity(new Intent(this.getContext(), ResultsActivity.class));
+    }
+
+    private void startClusterAccuracy() {
+        Objects.requireNonNull(this.getActivity()).startActivity(new Intent(this.getContext(), AccuracyActivity.class));
     }
 
     private void startPrediction(View v) {

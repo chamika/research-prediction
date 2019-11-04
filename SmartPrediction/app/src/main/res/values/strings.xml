@@ -6,9 +6,12 @@
     <string name="cluster">Cluster</string>
     <string name="menu_suggest_now">Suggest Now</string>
     <string name="menu_cluster_test">Cluster Test</string>
+    <string name="menu_cluster_accuracy">Cluster Accuracy</string>
     <string name="menu_view_data">View Data</string>
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
     <string name="kmeans">KMeans</string>
     <string name="em">EM</string>
+    <string name="look_back_minutes">Look back minutes</string>
+    <string name="test_data_percentage">Test data percentage</string>
 </resources>

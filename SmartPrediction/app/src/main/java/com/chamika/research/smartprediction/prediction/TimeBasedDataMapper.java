@@ -7,8 +7,10 @@ import com.chamika.research.smartprediction.store.BaseStore;
 
 import net.sf.javaml.core.Dataset;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class TimeBasedDataMapper implements ClusteringDataMapper {
@@ -109,6 +111,20 @@ public class TimeBasedDataMapper implements ClusteringDataMapper {
         double dayOfWeek = TimeBasedDataMapper.getDayOfWeek(cal);
         double timestep = TimeBasedDataMapper.getTimeOfDay(cal);
         return generateKey(dayOfWeek, timestep);
+    }
+
+    @Override
+    public Event reverseKey(String entry) {
+        String[] splits = entry.split(",");
+        String classText = splits[getClassIndex()];
+        String[] classValues = classText.split("\\|");
+        Date eventTime = null;
+        try {
+            eventTime = sdf.parse(classValues[2]);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return new Event(eventTime);
     }
 
     private double generateKey(double dayOfWeek, double timestep) {

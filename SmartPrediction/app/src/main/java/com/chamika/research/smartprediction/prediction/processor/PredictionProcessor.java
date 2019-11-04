@@ -1,7 +1,12 @@
 package com.chamika.research.smartprediction.prediction.processor;
 
+import android.content.Context;
+
+import com.chamika.research.smartprediction.prediction.DataMapper;
 import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.Prediction;
+import com.chamika.research.smartprediction.store.FileExport;
+import com.chamika.research.smartprediction.util.Config;
 
 import java.util.List;
 
@@ -30,6 +35,14 @@ public abstract class PredictionProcessor {
         void onInitializedSuccess(long timeInMillis);
 
         void onInitializedFailed();
+    }
+
+    protected String prepareDataFile(Context context, DataMapper dataMapper) {
+        String dataFileName = Config.DATA_FILE_NAME;
+        if (context != null) {
+            FileExport.exportDBtoFile(context, dataFileName, dataMapper);
+        }
+        return dataFileName;
     }
 
 }

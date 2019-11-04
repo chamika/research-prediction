@@ -20,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".ui.accuracy.AccuracyActivity"></activity>
 
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
@@ -38,7 +39,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".ui.dataview.DataViewActivity" />
         <activity android:name=".ui.results.ResultsActivity" />
 
@@ -47,14 +47,11 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
         <receiver android:name=".service.DataUploaderService">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>
-
-        <!-- Will not be called unless the application explicitly enables it -->
+        </receiver> <!-- Will not be called unless the application explicitly enables it -->
         <receiver
             android:name=".service.DeviceBootReceiver"
             android:enabled="false">
@@ -74,8 +71,7 @@
             android:name=".service.AppRestartReceiver"
             android:enabled="true"
             android:exported="true"
-            android:label="RestartServiceWhenStopped"></receiver>
-
+            android:label="RestartServiceWhenStopped" />
 
         <service android:name=".service.UserActivityCollectorService" />
         <service android:name=".service.PredictionService" />
