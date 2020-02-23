@@ -79,7 +79,8 @@ public class Clustering {
             Collections.sort(clusters[i], new Comparator<Instance>() {
                 @Override
                 public int compare(Instance o1, Instance o2) {
-                    return (int) Math.round((o1.value(0) + o1.value(1)) - (o2.value(0) + o2.value(1)));
+                    // multiply bt 6 for day of week and multiply by 100000 is to maintain digits
+                    return (int) Math.round(((o1.value(0) * 6 + o1.value(1)) - (o2.value(0) * 6 + o2.value(1))) * 100000);
                 }
             });
         }

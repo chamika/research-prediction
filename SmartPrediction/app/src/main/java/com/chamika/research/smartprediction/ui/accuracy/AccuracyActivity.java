@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chamika.research.smartprediction.R;
+import com.chamika.research.smartprediction.prediction.ActivityPrediction;
 import com.chamika.research.smartprediction.prediction.AppPrediction;
 import com.chamika.research.smartprediction.prediction.ClusteringDataMapper;
 import com.chamika.research.smartprediction.prediction.ContactPrediction;
@@ -169,7 +170,7 @@ public class AccuracyActivity extends AppCompatActivity implements PredictionPro
             Log.e(TAG, "Error in file reading or writing", e);
         }
 
-        return dataTrainingFileName;
+        return dataTempFileName;
     }
 
     public void startTest(View view) {
@@ -243,10 +244,13 @@ public class AccuracyActivity extends AppCompatActivity implements PredictionPro
                             matched = true;
                         } else if (filteredPrediction instanceof AppPrediction && ((AppPrediction) filteredPrediction).getPackageName().equals(clazz)) {
                             matched = true;
+                        } else if (filteredPrediction instanceof ActivityPrediction && ((ActivityPrediction) filteredPrediction).getActivity().equals(clazz)) {
+                            matched = true;
                         }
 
                         if (matched) {
-                            score = (topK - i) / (topK * 1f);
+//                            score = (topK - i) / (topK * 1f);
+                            score = 1.0f;
                             break;
                         }
                     }

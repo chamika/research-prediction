@@ -12,8 +12,9 @@ import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.KMeans;
 import com.chamika.research.smartprediction.prediction.MessagePrediction;
 import com.chamika.research.smartprediction.prediction.Prediction;
-import com.chamika.research.smartprediction.prediction.TimeActivityBasedDataMapper;
+import com.chamika.research.smartprediction.prediction.TimeBasedDataMapper;
 import com.chamika.research.smartprediction.util.Clustering;
+import com.chamika.research.smartprediction.util.Collections;
 import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.EventType;
 
@@ -23,26 +24,23 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class KMeansPredictionProcessor extends PredictionProcessor implements ClusteredPredictionProvider {
     private static final String TAG = KMeansPredictionProcessor.class.getSimpleName();
     public static final int DEFAULT_CLUSTER_COUNT = 48 * 7; // approximately 30 mins predictions
     public static final int CLUSTER_ITERATIONS = 1000;
     private static int PREDICTION_PROCESSOR_ID = 1;
-    private static final int MAX_PREDICTIONS = 5;
     private Context context;
     private int clusterCount;
     private NavigableMap<Double, List<Dataset>> clusteredData = new TreeMap<>();
     private NavigableMap<Double, List<Prediction>> predictionData = new TreeMap<>();
-    private ClusteringDataMapper dataMapper = new TimeActivityBasedDataMapper(10);
+    //    private ClusteringDataMapper dataMapper = new TimeActivityBasedDataMapper(10);
+    private ClusteringDataMapper dataMapper = new TimeBasedDataMapper();
 
     public KMeansPredictionProcessor(Context context) {
         this.context = context;
@@ -98,7 +96,7 @@ public class KMeansPredictionProcessor extends PredictionProcessor implements Cl
     @Override
     public Map.Entry<Double, List<Dataset>> queryClusterDataset(List<Event> events) {
         double key = dataMapper.generateKey(events.get(0));
-        return clusteredData.ceilingEntry(key);
+        return clusteredData.floorEntry(key);
     }
 
     @Override
@@ -108,7 +106,7 @@ public class KMeansPredictionProcessor extends PredictionProcessor implements Cl
 
     public Map.Entry<Double, List<Prediction>> queryPredictions(List<Event> events) {
         double key = dataMapper.generateKey(events.get(0));
-        return predictionData.ceilingEntry(key);
+        return predictionData.floorEntry(key);
     }
 
     @Override
@@ -117,7 +115,7 @@ public class KMeansPredictionProcessor extends PredictionProcessor implements Cl
     }
 
     private void createPredictions(List<Prediction> predictions, List<Dataset> datasets) {
-        HashMap<String, Integer> map = new HashMap<>();
+        HashMap<String, Integer> eventCounts = new HashMap<>();
         for (Dataset dataset : datasets) {
             Log.d(TAG, dataset.get(0).toString());
             Log.d(TAG, dataset.get(dataset.size() - 1).toString());
@@ -127,46 +125,23 @@ public class KMeansPredictionProcessor extends PredictionProcessor implements Cl
                 String event = (String) dataset.get(i).classValue();
                 String[] split = event.split("\\|");
                 String key = split[0] + "|" + split[1];
-                Integer count = map.get(key);
+                Integer count = eventCounts.get(key);
                 if (count == null) {
-                    map.put(key, 1);
+                    eventCounts.put(key, 1);
                 } else {
-                    map.put(key, count + 1);
+                    eventCounts.put(key, count + 1);
                 }
             }
         }
 
         //create predictions
-        //limit predictions using map of counts
-        SortedSet<Map.Entry<String, Integer>> sortedEntriesByValue = new TreeSet<>(
-                new Comparator<Map.Entry<String, Integer>>() {
-                    @Override
-                    public int compare(Map.Entry<String, Integer> e1, Map.Entry<String, Integer> e2) {
-//                                return e1.getValue().compareTo(e2.getValue());
-                        return e2.getValue().compareTo(e1.getValue());//descending order
-                    }
-                }
-        );
+        final Map<String, Integer> sortedEntriesByValue = Collections.sortByValue(eventCounts);
 
-        sortedEntriesByValue.addAll(map.entrySet());
-
-        Map<String, Integer> countMap = new HashMap<>();
         int count = 1;
-        for (Map.Entry<String, Integer> mapEntry : sortedEntriesByValue) {
+        for (Map.Entry<String, Integer> mapEntry : sortedEntriesByValue.entrySet()) {
             String event = mapEntry.getKey();
             String[] split = event.split("\\|");
             String eventType = split[0];
-
-            Integer typeCount = countMap.get(eventType);
-            if (typeCount == null) {
-                typeCount = 1;
-            } else {
-                typeCount++;
-            }
-            countMap.put(eventType, typeCount);
-            if (typeCount > MAX_PREDICTIONS) {
-                continue;
-            }
 
             Prediction prediction = null;
             if (EventType.ACT.text().equals(eventType)) {
