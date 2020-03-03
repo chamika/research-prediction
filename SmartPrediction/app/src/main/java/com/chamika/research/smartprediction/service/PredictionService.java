@@ -38,8 +38,11 @@ import com.chamika.research.smartprediction.util.Config;
 import com.chamika.research.smartprediction.util.Constant;
 import com.chamika.research.smartprediction.util.SettingsUtil;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -60,6 +63,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     private static final int REQUEST_CODE_DATA_COLLECTION_ALARM = 3000;
     private static final int REQUEST_CODE_DB_UPLOAD_ALARM = 3001;
     private static final int REQUEST_CODE_PREDICTION_ENGINE_REFRESH_ALARM = 3002;
+    public static final int MAX_PREDICTIONS_PER_TYPE = 5;
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
     private PredictionEngine predictionEngine;
     private boolean screenReceiverRegistered = false;
@@ -392,9 +396,30 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     }
 
     private void showPredictions(List<Prediction> predictions) {
-        if (predictions != null && !predictions.isEmpty()) {
+        if (predictions == null) {
+            return;
+        }
+        //limit prediction
+        Map<Prediction.Type, List<Prediction>> map = new HashMap<>();
+        for (Prediction prediction : predictions) {
+            List<Prediction> predictionList = map.get(prediction.getType());
+            if (predictionList == null) {
+                predictionList = new ArrayList<>();
+                map.put(prediction.getType(), predictionList);
+            }
+            if (predictionList.size() < MAX_PREDICTIONS_PER_TYPE) {
+                predictionList.add(prediction);
+            }
+        }
+
+        List<Prediction> filteredPredictions = new ArrayList<>();
+        for (Map.Entry<Prediction.Type, List<Prediction>> entry : map.entrySet()) {
+            filteredPredictions.addAll(entry.getValue());
+        }
+
+        if (!filteredPredictions.isEmpty()) {
             MultiSectionHoverMenu menu = new MultiSectionHoverMenu(this, this);
-            menu.updateSections(predictions);
+            menu.updateSections(filteredPredictions);
             if (menu.getSectionCount() > 0) {
                 if (this.mHoverView != null) {
                     this.mHoverView.close();

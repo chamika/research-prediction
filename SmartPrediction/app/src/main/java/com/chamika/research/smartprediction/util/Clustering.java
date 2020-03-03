@@ -6,8 +6,6 @@ import android.util.Log;
 import com.chamika.research.smartprediction.prediction.ClusteringDataMapper;
 
 import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.evaluation.ClusterEvaluation;
-import net.sf.javaml.clustering.evaluation.SumOfSquaredErrors;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.FileHandler;
@@ -32,11 +30,10 @@ public class Clustering {
     }
 
     private static boolean overlapped(Dataset cluster1, Dataset cluster2) {
-        int index = 1;
-        double r1 = cluster1.get(0).value(index);
-        double r2 = cluster1.get(cluster1.size() - 1).value(index);
-        double t1 = cluster2.get(0).value(index);
-        double t2 = cluster2.get(cluster2.size() - 1).value(index);
+        double r1 = calculateScalarValue(cluster1.get(0));
+        double r2 = calculateScalarValue(cluster1.get(cluster1.size() - 1));
+        double t1 = calculateScalarValue(cluster2.get(0));
+        double t2 = calculateScalarValue(cluster2.get(cluster2.size() - 1));
 
         if (r1 == t1 || r1 == t2 || t1 == r2) {
             return true;
@@ -51,6 +48,14 @@ public class Clustering {
         }
         return false;
 
+    }
+
+    private static double calculateScalarValue(Instance o) {
+        double sum = o.value(0) * 6 + o.value(1);
+        if (o.noAttributes() >= 3) {
+            sum += 100 * o.value(2);
+        }
+        return sum;
     }
 
     public Dataset[] doCluster(String fileAbsolutePath, ClusteringDataMapper dataMapper) throws IOException {
@@ -69,50 +74,37 @@ public class Clustering {
         Dataset[] clusters = clusterer.cluster(data);
         Log.d(TAG, "clustering finished. count = " + clusters.length);
         Log.d(TAG, "clustering total time = " + (System.currentTimeMillis() - start) + " ms");
-        ClusterEvaluation sse = new SumOfSquaredErrors();
-//        Log.d(TAG,"score = " + sse.score(clusters));
 
         //sort to make
         for (int i = 0; i < clusters.length; i++) {
-            Log.d(TAG, "Cluster " + i + " size:" + clusters[i].size());
+//            Log.d(TAG, "Cluster " + i + " size:" + clusters[i].size());
             final int finalI = i;
             Collections.sort(clusters[i], new Comparator<Instance>() {
                 @Override
                 public int compare(Instance o1, Instance o2) {
                     // multiply bt 6 for day of week and multiply by 100000 is to maintain digits
-                    return (int) Math.round(((o1.value(0) * 6 + o1.value(1)) - (o2.value(0) * 6 + o2.value(1))) * 100000);
+                    return (int) Math.round((calculateScalarValue(o1) - (calculateScalarValue(o2))) * 100000);
                 }
             });
         }
+
         for (int i = 0; i < clusters.length; i++) {
-            Log.d(TAG, "**** Cluster " + i + "****");
-            Dataset cluster = clusters[i];
-//            for (Instance instance : cluster) {
-//                Log.d(TAG,"Cluster  " + i + "->" + instance.toString());
-//            }
-            if (cluster.size() > 0) {
-                Log.d(TAG, "Cluster  " + i + "->" + cluster.get(0).toString());
-                Log.d(TAG, "Cluster  " + i + "->" + cluster.get(cluster.size() - 1).toString());
+            Dataset cluster1 = clusters[i];
+            if (cluster1.size() > 0) {
+                for (int j = i + 1; j < clusters.length; j++) {
+                    Dataset cluster2 = clusters[j];
+                    if (cluster2.size() > 0) {
+                        if (overlapped(cluster1, cluster2)) {
+                            Log.d(TAG, "overlapped:");
+                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(0).toString());
+                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(cluster1.size() - 1).toString());
+                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(0).toString());
+                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(cluster2.size() - 1).toString());
+                        }
+                    }
+                }
             }
         }
-
-//        for (int i = 0; i < clusters.length; i++) {
-//            Dataset cluster1 = clusters[i];
-//            if (cluster1.size() > 0) {
-//                for (int j = i + 1; j < clusters.length; j++) {
-//                    Dataset cluster2 = clusters[j];
-//                    if (cluster2.size() > 0) {
-//                        if (overlapped(cluster1, cluster2)) {
-//                            Log.d(TAG, "overlapped:");
-//                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(0).toString());
-//                            Log.d(TAG, "Cluster  " + i + "->" + cluster1.get(cluster1.size() - 1).toString());
-//                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(0).toString());
-//                            Log.d(TAG, "Cluster  " + j + "->" + cluster2.get(cluster2.size() - 1).toString());
-//                        }
-//                    }
-//                }
-//            }
-//        }
 
         return clusters;
     }

@@ -118,8 +118,8 @@ public class EMPredictionProcessor extends PredictionProcessor implements Cluste
     private void createPredictions(List<Prediction> predictions, List<Dataset> datasets) {
         HashMap<String, Integer> eventCounts = new HashMap<>();
         for (Dataset dataset : datasets) {
-            Log.d(TAG, dataset.get(0).toString());
-            Log.d(TAG, dataset.get(dataset.size() - 1).toString());
+//            Log.d(TAG, dataset.get(0).toString());
+//            Log.d(TAG, dataset.get(dataset.size() - 1).toString());
             //SMS|17d50f1c|2018.03.03 at 12:17:23
             int size = dataset.size();
             for (int i = 0; i < size; i++) {
