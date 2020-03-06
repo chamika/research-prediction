@@ -65,6 +65,16 @@ public class BaseStore {
         return 1;
     }
 
+    public static int updateEventData1(Context context, long id, String newData1) {
+        initWritableDB(context);
+
+        ContentValues values = new ContentValues();
+        values.put(EventsStructure.COLUMN_NAME_DATA1, newData1);
+        int rows = dbWritable.update(EventsStructure.TABLE_NAME_EVENTS, values, "_id = ?", new String[]{String.valueOf(id)});
+        Log.d(TAG, "Update " + EventsStructure.TABLE_NAME_EVENTS + " row:" + id);
+        return rows;
+    }
+
 //    public static Cursor getAppsFromState(Context context, String tableName, String type, String state) {
 //        DBHelper mDbHelper = new DBHelper(context);
 //

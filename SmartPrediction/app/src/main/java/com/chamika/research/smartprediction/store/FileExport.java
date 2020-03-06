@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.chamika.research.smartprediction.prediction.DataMapper;
+import com.chamika.research.smartprediction.util.EventType;
+import com.chamika.research.smartprediction.util.StringUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -59,6 +61,21 @@ public class FileExport {
                     fos.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void fixEncryptionMismatch(Context context) {
+        Cursor cursor = BaseStore.getAllEvents(context);
+        while (cursor.moveToNext()) {
+            long id = cursor.getInt(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure._ID));
+            String eventType = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_EVENT_TYPE));
+            String data1 = cursor.getString(cursor.getColumnIndexOrThrow(BaseStore.EventsStructure.COLUMN_NAME_DATA1));
+            if (EventType.SMS.text().equals(eventType) || EventType.CALL.text().equals(eventType)) {
+                int rows = BaseStore.updateEventData1(context, id, StringUtil.encrypt(context, StringUtil.decrypt(context, data1)));
+                if (rows != 1) {
+                    throw new RuntimeException("Updated more than 1 rows: _id" + id);
                 }
             }
         }
