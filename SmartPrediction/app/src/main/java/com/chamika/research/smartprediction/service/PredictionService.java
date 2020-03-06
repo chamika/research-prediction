@@ -31,7 +31,7 @@ import com.chamika.research.smartprediction.prediction.CallPrediction;
 import com.chamika.research.smartprediction.prediction.Event;
 import com.chamika.research.smartprediction.prediction.MessagePrediction;
 import com.chamika.research.smartprediction.prediction.Prediction;
-import com.chamika.research.smartprediction.prediction.PredictionEngine;
+import com.chamika.research.smartprediction.prediction.PredictionEngineImpl;
 import com.chamika.research.smartprediction.ui.hover.MultiSectionHoverMenu;
 import com.chamika.research.smartprediction.ui.hover.adapters.OnItemSelectListener;
 import com.chamika.research.smartprediction.util.Config;
@@ -65,7 +65,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
     private static final int REQUEST_CODE_PREDICTION_ENGINE_REFRESH_ALARM = 3002;
     public static final int MAX_PREDICTIONS_PER_TYPE = 5;
     private final BroadcastReceiver screenReceiver = new ScreenReceiver();
-    private PredictionEngine predictionEngine;
+    private PredictionEngineImpl predictionEngine;
     private boolean screenReceiverRegistered = false;
 
     private HoverView mHoverView;
@@ -175,7 +175,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
                 if (intent.hasExtra(INTENT_EXTRA_SCREEN_ON)) {
                     boolean screenOn = intent.getBooleanExtra(INTENT_EXTRA_SCREEN_ON, false);
                     if (screenOn) {
-                        List<Prediction> predictions = predictionEngine.addEventSynchronous(new Event());
+                        List<Prediction> predictions = predictionEngine.processEventSynchronous(new Event());
                         if (predictions != null) {
                             showPredictions(predictions);
                         }
@@ -185,7 +185,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
                 } else if (intent.hasExtra(INTENT_EXTRA_SCREEN_EVENT)) {
                     Event event = (Event) intent.getSerializableExtra(INTENT_EXTRA_SCREEN_EVENT);
                     if (event != null) {
-                        showPredictions(predictionEngine.addEventSynchronous(event));
+                        showPredictions(predictionEngine.processEventSynchronous(event));
                     }
                 } else if (intent.hasExtra(INTENT_EXTRA_REFRESH_PREDICTIONS)) {
                     predictionEngine.refresh();
@@ -384,7 +384,7 @@ public class PredictionService extends Service implements OnItemSelectListener<P
 
     private void initPredictionEngine() {
         if (predictionEngine == null) {
-            this.predictionEngine = new PredictionEngine(this.getApplicationContext());
+            this.predictionEngine = new PredictionEngineImpl(this.getApplicationContext());
         }
 //        this.predictionEngine.addPredictionListener(this);
     }

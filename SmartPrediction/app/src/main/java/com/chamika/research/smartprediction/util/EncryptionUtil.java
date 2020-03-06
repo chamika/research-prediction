@@ -10,7 +10,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -26,11 +25,10 @@ public class EncryptionUtil {
     //    private static final String KEY = "4xMrL7oXb7TWsJMb";
     private static final String AES_CTR_NO_PADDING = "AES/CTR/NoPadding";
     private static final int IV_LENGTH = 16;
+    private static final byte[] IV = "NtArdEmETrestAMB".getBytes();
 
     public static String encrypt(Context context, String input) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] iv = new byte[IV_LENGTH];
-        secureRandom.nextBytes(iv);
+        byte[] iv = IV;
 
         byte[] key = getKey(context).getBytes(DEFAULT_CHARSET);
         SecretKey secretKeySpec = new SecretKeySpec(key, "AES");
